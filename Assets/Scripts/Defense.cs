@@ -2,17 +2,22 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using FishNet.Object;
-using Unity.VisualScripting;
+using FishNet.Object.Synchronizing;
 using UnityEngine;
 
 public class Defense : PickupableObject, ITriggerCollider
 {
+    [SyncVar(Channel = FishNet.Transporting.Channel.Reliable, ReadPermissions = ReadPermission.Observers, WritePermissions = WritePermission.ServerOnly)]
     [HideInInspector] public bool isDeployed;
     private float rotateSpeed = 10f;
     [SerializeField] private LayerMask walkableLayerMask;
     private Vector3 HitGroundLocation = Vector3.zero;
     private Vector3 LastHitGroundLocation = Vector3.zero;
     [SerializeField] private float heightOffset; // if offset too small object will fly when deployed, don't know why
+    
+    // These two shouldn't be necessary but for some reason it is. I don't know who is setting rotation that causes jittering
+    private Vector3 deployPosition;
+    private Quaternion deployRotation;
 
     // Materials
     // Material Idx for RPCs: 1: canDeployMaterial; 2: cannotDeployMaterial; 3: DeployedMaterial
@@ -30,7 +35,7 @@ public class Defense : PickupableObject, ITriggerCollider
         }
     }
 
-    [ServerRpc(RequireOwnership = false)]
+    [ServerRpc(RequireOwnership = false, RunLocally = true)]
     private void ChangeMaterialServerRpc(int materialIdx)
     {
         ChangeMaterialObserversRpc(materialIdx);
@@ -91,14 +96,41 @@ public class Defense : PickupableObject, ITriggerCollider
     private bool CanDeploy = false;
 
     public override void Dropoff(int numberOfItems)
-    {        
+    {
         GetComponentInChildren<Collider>().isTrigger = false;
-        GetComponent<PickupableObject>().UpdatePickUpStatusServerRpc(false);
-        GetComponent<PickupableObject>().SetCarryMountTransform(null);
-        GetComponent<PickupableObject>().SetCameraViewTransform(null);
-        GetComponent<PickupableObject>().numOfItem = numberOfItems;
-        GetComponent<Defense>().isDeployed = true;
-        GetComponent<PickupableObject>().RemoveClientOwnershipServerRpc();
+        UpdatePickUpStatusServerRpc(false);
+        SetCarryMountTransform(null);
+        SetCameraViewTransform(null);
+        numOfItem = numberOfItems;
+        UpdateIsDeployedServerRpc(true);
+        RemoveClientOwnershipServerRpc();
+        //transform.position = deployPosition;
+        transform.rotation = deployRotation;
+    }
+
+    public override void PickUp(Transform _carryMountPoint, Transform cameraTransform, Transform _defenseCarryMountPoint)
+    {
+        if (IsServer)
+        {
+            UpdateRBGravityClientRpc(false); // Gravity disabled when picked up, otherwise transform is glichy for other clients 
+            UpdateIsTriggerClientRpc(true); // player may collider with object otherwise due to syncing delay
+        }
+        else
+        {
+            UpdateRBGravityServerRpc(false);
+            UpdateIsTriggerServerRpc(true);
+        }
+        ChangeObjectOwnershipServerRpc();    // so spawned objects can follow player 
+        SetCarryMountTransform(_defenseCarryMountPoint);
+        UpdateIsDeployedServerRpc(false);
+        IfCanDeploy();
+        UpdatePickUpStatusServerRpc(true);
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    public void UpdateIsDeployedServerRpc(bool isDeployed)
+    {
+        this.isDeployed = isDeployed;
     }
 
     public virtual void onEnterDetectionZone(Collider other, GameObject initiatingGameObject)
@@ -126,6 +158,7 @@ public class Defense : PickupableObject, ITriggerCollider
 
     protected override void PickulableObjectFollowTransform()
     {
+        if (isDeployed) { return; }
         if (HitGroundLocation == Vector3.zero)
         {
             transform.position = followCarryMountTransform.position;
@@ -134,6 +167,7 @@ public class Defense : PickupableObject, ITriggerCollider
             transform.position = new Vector3(followCarryMountTransform.position.x, HitGroundLocation.y + heightOffset, followCarryMountTransform.position.z);
             //Debug.Log("Normal debug: " + transform.position + " " + HitGroundLocation);
         }
+        //deployPosition = transform.position;
     }    
     
 
@@ -149,19 +183,21 @@ public class Defense : PickupableObject, ITriggerCollider
     {
         if (!CanDeploy) { return false; }
 
-        if (IsHost)
+        if (IsServer)
         {
             ChangeMaterialObserversRpc(3);
         } else
         {
             ChangeMaterialServerRpc(3);
         }
+        rb.constraints = RigidbodyConstraints.FreezeAll;
         return true;
     }
 
 
     protected virtual void Update()
     {
+        print("deployRotation:" + deployRotation);
         if (!isDeployed)
         {
             if (RotaryHeart.Lib.PhysicsExtension.Physics.Raycast(transform.position, -transform.up, out RaycastHit hitInfo, Mathf.Infinity, walkableLayerMask, QueryTriggerInteraction.Ignore, RotaryHeart.Lib.PhysicsExtension.PreviewCondition.Both))
@@ -169,11 +205,12 @@ public class Defense : PickupableObject, ITriggerCollider
                 HitGroundLocation = LastHitGroundLocation = hitInfo.point;
                 Quaternion rotationBasedOnSurface = Quaternion.Lerp(transform.rotation, Quaternion.FromToRotation(Vector3.up, hitInfo.normal), rotateSpeed * Time.deltaTime);
                 transform.rotation = Quaternion.Euler(rotationBasedOnSurface.eulerAngles.x, transform.eulerAngles.y, rotationBasedOnSurface.eulerAngles.z);
+                deployRotation = transform.rotation;
             } else
             {
                 HitGroundLocation = LastHitGroundLocation;
             }
-        }
+        } 
     }
 
     public override void OnStartNetwork()

@@ -33,12 +33,12 @@ public class PickupableObject : Carryable, IThrowable
     }
     protected Transform followCarryMountTransform;
     protected Transform followCameraViewTransform;   
-    private Rigidbody rb;
+    protected Rigidbody rb;
 
     public override void OnStartNetwork()
     {
         base.OnStartNetwork();
-        rb = GetComponent<Rigidbody>();
+        rb = GetComponent<Rigidbody>();        
     }
 
     [ServerRpc(RequireOwnership = false)]
@@ -94,15 +94,68 @@ public class PickupableObject : Carryable, IThrowable
         GetComponentInChildren<MeshRenderer>().enabled = state;
     }
 
+    [ObserversRpc]
+    protected void UpdateRBGravityClientRpc(bool ifUseGravity)
+    {
+        rb.useGravity = ifUseGravity;
+        rb.constraints = ifUseGravity ? RigidbodyConstraints.None : RigidbodyConstraints.FreezeAll;
+    }
+
+    [ServerRpc(RequireOwnership = false, RunLocally = true)]
+    protected void UpdateRBGravityServerRpc(bool ifUseGravity)
+    {
+        rb.useGravity = ifUseGravity;
+        rb.constraints = ifUseGravity ? RigidbodyConstraints.None : RigidbodyConstraints.FreezeAll;
+        UpdateRBGravityClientRpc(ifUseGravity);
+    }
+
+    [ObserversRpc]
+    protected void UpdateIsTriggerClientRpc(bool isTrigger)
+    {
+        GetComponentInChildren<Collider>().isTrigger = isTrigger;
+    }
+
+    [ServerRpc(RequireOwnership = false, RunLocally = true)]
+    protected void UpdateIsTriggerServerRpc(bool isTrigger)
+    {
+        GetComponentInChildren<Collider>().isTrigger = isTrigger;
+        UpdateIsTriggerClientRpc(isTrigger);
+    }
+
     public virtual void Dropoff(int numberOfItems)
     {
-        GetComponentInChildren<Collider>().isTrigger = false;
-        GetComponent<Rigidbody>().useGravity = true;
-        GetComponent<PickupableObject>().UpdatePickUpStatusServerRpc(false);
-        GetComponent<PickupableObject>().SetCarryMountTransform(null);
-        GetComponent<PickupableObject>().SetCameraViewTransform(null);
-        GetComponent<PickupableObject>().numOfItem = numberOfItems;                
-        GetComponent<PickupableObject>().RemoveClientOwnershipServerRpc();
+        if (IsServer)
+        {
+            UpdateRBGravityClientRpc(true);
+            UpdateIsTriggerClientRpc(false);
+        } else
+        {
+            UpdateRBGravityServerRpc(true);
+            UpdateIsTriggerServerRpc(false);
+        }
+        UpdatePickUpStatusServerRpc(false);
+        SetCarryMountTransform(null);
+        SetCameraViewTransform(null);
+        numOfItem = numberOfItems;                
+        RemoveClientOwnershipServerRpc();
+    }
+
+    public virtual void PickUp(Transform _carryMountPoint, Transform cameraTransform, Transform _defenseCarryMountPoint)
+    {
+        if (IsServer)
+        {
+            UpdateRBGravityClientRpc(false); // Gravity disabled when picked up, otherwise transform is glichy for other clients 
+            UpdateIsTriggerClientRpc(true); // player may collider with object otherwise due to syncing delay
+        }
+        else
+        {
+            UpdateRBGravityServerRpc(false);
+            UpdateIsTriggerServerRpc(true);
+        }
+        ChangeObjectOwnershipServerRpc();    // so spawned objects can follow player 
+        SetCarryMountTransform(_carryMountPoint);
+        SetCameraViewTransform(cameraTransform);
+        UpdatePickUpStatusServerRpc(true);
     }
 
     private void LateUpdate()
@@ -116,7 +169,8 @@ public class PickupableObject : Carryable, IThrowable
     }
 
     protected virtual void PickulableObjectFollowTransform()
-    {       
+    {
+        print("Two transforms positions: " + transform.position + " " + followCarryMountTransform.position);
         transform.position = followCarryMountTransform.position;
         if (followCameraViewTransform != null)
         {

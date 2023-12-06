@@ -493,21 +493,7 @@ public class Player : Character, ITrackable
         int emptyIdx = DeterminePickupIdx(objectTobeHeld);
         if (emptyIdx == -1) { return; } // no empty space, cannot pickup
         inventoryList[emptyIdx] = Tuple.Create(objectTobeHeld, objectTobeHeld.GetComponent<PickupableObject>().numOfItem + (isInventorySlotEmpty(emptyIdx) ? 0 : inventoryList[emptyIdx].Item2));
-        inventoryList[emptyIdx].Item1.GetComponentInChildren<Collider>().isTrigger = true; // player may collider with object otherwise due to syncing delay
-        inventoryList[emptyIdx].Item1.GetComponent<Rigidbody>().useGravity = false;
-        inventoryList[emptyIdx].Item1.GetComponent<PickupableObject>().ChangeObjectOwnershipServerRpc();    // so spawned objects can follow player 
-        if (objectTobeHeld.GetComponent<Defense>() != null)
-        {
-            inventoryList[emptyIdx].Item1.GetComponent<PickupableObject>().SetCarryMountTransform(_defenseCarryMountPoint);
-            inventoryList[emptyIdx].Item1.GetComponent<Defense>().isDeployed = false;
-            inventoryList[emptyIdx].Item1.GetComponent<Defense>().IfCanDeploy();
-        }
-        else
-        {            
-            inventoryList[emptyIdx].Item1.GetComponent<PickupableObject>().SetCarryMountTransform(_carryMountPoint);
-            inventoryList[emptyIdx].Item1.GetComponent<PickupableObject>().SetCameraViewTransform(cameraTransform);
-        }
-        objectTobeHeld.GetComponent<PickupableObject>().UpdatePickUpStatusServerRpc(true);        
+        inventoryList[emptyIdx].Item1.GetComponent<PickupableObject>().PickUp(_carryMountPoint, cameraTransform, _defenseCarryMountPoint);
         if (emptyIdx == _currentlyHeldIdx) // Don't hide object, update UI
         {
             UpdateInventoryUI(inventoryList[emptyIdx].Item1.GetComponent<PickupableObject>().objectItem.ItemName,
@@ -515,7 +501,7 @@ public class Player : Character, ITrackable
         } 
         else // Hide object 
         {
-            if (IsHost)
+            if (IsServer)
             {
                 SetMeshStatusClientRpc(inventoryList[emptyIdx].Item1.gameObject.GetComponent<NetworkObject>(), false);
             }
@@ -548,7 +534,7 @@ public class Player : Character, ITrackable
             inventoryList[_currentlyHeldIdx].Item1.GetComponent<PickupableObject>().DestroyNetworkObjectServerRpc();
             UpdateInventoryUI("Fist", "");
             MakeInventorySlotEmpty(_currentlyHeldIdx);
-        } else if (inventoryList[_currentlyHeldIdx].Item1.GetComponent<Defense>() == null)
+        } else if (inventoryList[_currentlyHeldIdx].Item1.GetComponent<Defense>() == null)  // Defenses can only be deployed and cannot be dropped off
         {   
             inventoryList[_currentlyHeldIdx].Item1.GetComponent<PickupableObject>().Dropoff(inventoryList[_currentlyHeldIdx].Item2);
             UpdateInventoryUI("Fist", "");
@@ -599,8 +585,8 @@ public class Player : Character, ITrackable
     {
         if (!isInventorySlotEmpty(_currentlyHeldIdx))
         {
-            inventoryList[_currentlyHeldIdx].Item1.GetComponent<PickupableObject>().DisableOrEnableMesh(false); // client can execute locally to minimize perceived delay
-            if (IsHost)
+            //inventoryList[_currentlyHeldIdx].Item1.GetComponent<PickupableObject>().DisableOrEnableMesh(false); // client can execute locally to minimize perceived delay
+            if (IsServer)
             {
                 SetMeshStatusClientRpc(inventoryList[_currentlyHeldIdx].Item1.gameObject.GetComponent<NetworkObject>(), false);
             } else
@@ -611,8 +597,8 @@ public class Player : Character, ITrackable
         _currentlyHeldIdx = idx;
         if (!isInventorySlotEmpty(_currentlyHeldIdx))
         {
-            inventoryList[_currentlyHeldIdx].Item1.GetComponent<PickupableObject>().DisableOrEnableMesh(true); // client can execute locally to minimize perceived delay
-            if (IsHost)
+            //inventoryList[_currentlyHeldIdx].Item1.GetComponent<PickupableObject>().DisableOrEnableMesh(true); // client can execute locally to minimize perceived delay
+            if (IsServer)
             {
                 SetMeshStatusClientRpc(inventoryList[_currentlyHeldIdx].Item1.gameObject.GetComponent<NetworkObject>(), true);
             }
@@ -627,9 +613,10 @@ public class Player : Character, ITrackable
         }
     }
 
-    [ServerRpc(RequireOwnership = false)]
+    [ServerRpc(RequireOwnership = false, RunLocally = true)]
     private void SetMeshStatusServerRpc(NetworkObject item, bool ifActive)
     {
+        item.gameObject.GetComponent<PickupableObject>().DisableOrEnableMesh(ifActive);
         SetMeshStatusClientRpc(item, ifActive);        
     }
 
@@ -655,14 +642,14 @@ public class Player : Character, ITrackable
                 if (!inventoryList[_currentlyHeldIdx].Item1.GetComponent<Defense>().Deploy()) { return; }
 
                 int defenseHeldNumber = inventoryList[_currentlyHeldIdx].Item2;
-                inventoryList[_currentlyHeldIdx].Item1.GetComponent<PickupableObject>().Dropoff(1);
+                inventoryList[_currentlyHeldIdx].Item1.GetComponent<Defense>().Dropoff(1);
                 if (defenseHeldNumber > 1)
                 {
                     string itemName = inventoryList[_currentlyHeldIdx].Item1.GetComponent<PickupableObject>().objectItem.ItemName;
                     MakeInventorySlotEmpty(CurrentlyHeldIdx);
                     StorageAndCrafting.Instance.SpawnItem(itemName); // create a new one and pick it up
                     UpdateInventorySlot(_currentlyHeldIdx, Tuple.Create(inventoryList[_currentlyHeldIdx].Item1, defenseHeldNumber - 1));
-                    UpdateInventoryUI(inventoryList[_currentlyHeldIdx].Item1.GetComponent<PickupableObject>().objectItem.ItemName, inventoryList[_currentlyHeldIdx].Item2.ToString());
+                    UpdateInventoryUI(itemName, (defenseHeldNumber - 1).ToString());
                 } else
                 {
                     UpdateInventoryUI("Fist", "");
@@ -767,11 +754,25 @@ public class Player : Character, ITrackable
             if (hitInfo.transform.GetComponent<Carryable>() != null)
             {
                 objectToCarry = hitInfo.transform.gameObject;
+                         
+            } else if (hitInfo.transform.root.GetComponent<Carryable>() != null)
+            {
+                objectToCarry = hitInfo.transform.root.gameObject;
+            } 
+            else
+            {
+                PickupPrompt.enabled = false;
+                InventoryFullPrompt.enabled = false;
+            }
+
+            if (objectToCarry != null)
+            {
                 if (!objectToCarry.GetComponent<PickupableObject>().isPickedUp && DeterminePickupIdx(hitInfo.transform.gameObject) == -1)
                 {
                     InventoryFullPrompt.enabled = true;
-                } else
-                {                    
+                }
+                else
+                {
                     Debug.Assert(objectToCarry.GetComponent<PickupableObject>() != null, "Now we assume carryable <=> PickupableObject, so cannot pickup object if it is not PickupableObject");
                     Debug.Log($"Is picked up: {objectToCarry.GetComponent<PickupableObject>().isPickedUp}");
                     if (!objectToCarry.GetComponent<PickupableObject>().isPickedUp)
@@ -779,13 +780,10 @@ public class Player : Character, ITrackable
                         PickupPrompt.transform.GetChild(1).GetComponent<TMP_Text>().text = objectToCarry.GetComponent<PickupableObject>().numOfItem.ToString();
                         PickupPrompt.transform.GetChild(2).GetComponent<TMP_Text>().text = objectToCarry.GetComponent<PickupableObject>().objectItem.ItemName;
                         PickupPrompt.enabled = true;
-                    }                                        
-                }                
-            } else
-            {
-                PickupPrompt.enabled = false;
-                InventoryFullPrompt.enabled = false;
+                    }
+                }
             }
+
             if (hitInfo.transform.gameObject.GetComponent<Interactable>() != null)
             {
                 objectToInteract = hitInfo.transform.gameObject;
