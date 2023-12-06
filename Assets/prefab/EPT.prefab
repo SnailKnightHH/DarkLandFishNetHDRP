@@ -16,7 +16,7 @@ GameObject:
   - component: {fileID: 5560132648343651671}
   m_Layer: 7
   m_Name: EPT
-  m_TagString: Untagged
+  m_TagString: IgnoredByTriggerCollider
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -370,7 +370,7 @@ GameObject:
   - component: {fileID: 5264964823105609328}
   m_Layer: 7
   m_Name: Mesh
-  m_TagString: Untagged
+  m_TagString: IgnoredByTriggerCollider
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

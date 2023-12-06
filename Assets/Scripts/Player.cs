@@ -1,7 +1,6 @@
-using FishNet.Managing;
 using FishNet.Object;
 using FishNet.Object.Synchronizing;
-using FishNet.Transporting;
+using FishNet.Connection;
 using StarterAssets;
 using System;
 using System.Collections;
@@ -446,12 +445,12 @@ public class Player : Character, ITrackable
     /// </remarks>
     public int DeterminePickupIdx(GameObject objectTobeHeld)   // Todo: consider case: [5, 0], and you have 6, it needs to be [10, 1]
     {
-        int emptyIdx = -1;
+        int availableIdx = -1;
         for (int i = 0; i < inventoryList.Count; i++)
         {
-            if (emptyIdx == -1 && isInventorySlotEmpty(i))
+            if (availableIdx == -1 && isInventorySlotEmpty(i))
             {
-                emptyIdx = i;
+                availableIdx = i;
                 continue;
             }
             if (!isInventorySlotEmpty(i)
@@ -462,17 +461,17 @@ public class Player : Character, ITrackable
                 return i;
             }
         }
-        return emptyIdx;
+        return availableIdx;
     }
 
     public int DeterminePickupIdx(Item objectTobeHeldItem)   
     {
-        int emptyIdx = -1;
+        int availableIdx = -1;
         for (int i = 0; i < inventoryList.Count; i++)
         {
-            if (emptyIdx == -1 && isInventorySlotEmpty(i))
+            if (availableIdx == -1 && isInventorySlotEmpty(i))
             {
-                emptyIdx = i;
+                availableIdx = i;
                 continue;
             }
             if (!isInventorySlotEmpty(i)
@@ -482,39 +481,52 @@ public class Player : Character, ITrackable
                 return i;
             }
         }
-        return emptyIdx;
+        return availableIdx;
     }
 
-    public void pickup(GameObject objectTobeHeld)
+    public void pickup(GameObject objectTobeHeld, int availableIdx = -1)
     {
         // attach object to mount point and keep reference
         Debug.Log("picking up item");
         if (objectTobeHeld.GetComponent<PickupableObject>().isPickedUp) { return; }
-        int emptyIdx = DeterminePickupIdx(objectTobeHeld);
-        if (emptyIdx == -1) { return; } // no empty space, cannot pickup
-        inventoryList[emptyIdx] = Tuple.Create(objectTobeHeld, objectTobeHeld.GetComponent<PickupableObject>().numOfItem + (isInventorySlotEmpty(emptyIdx) ? 0 : inventoryList[emptyIdx].Item2));
-        inventoryList[emptyIdx].Item1.GetComponent<PickupableObject>().PickUp(_carryMountPoint, cameraTransform, _defenseCarryMountPoint);
-        if (emptyIdx == _currentlyHeldIdx) // Don't hide object, update UI
+        if (availableIdx == -1)
         {
-            UpdateInventoryUI(inventoryList[emptyIdx].Item1.GetComponent<PickupableObject>().objectItem.ItemName,
-                inventoryList[emptyIdx].Item2.ToString());
-        } 
+            availableIdx = DeterminePickupIdx(objectTobeHeld);
+            if (availableIdx == -1) { return; } // no empty space, cannot pickup
+        }
+
+        GameObject previouslyHeldGO = inventoryList[availableIdx].Item1;
+        inventoryList[availableIdx] = Tuple.Create(objectTobeHeld, objectTobeHeld.GetComponent<PickupableObject>().numOfItem + (isInventorySlotEmpty(availableIdx) ? 0 : inventoryList[availableIdx].Item2));
+        inventoryList[availableIdx].Item1.GetComponent<PickupableObject>().PickUp(_carryMountPoint, cameraTransform, _defenseCarryMountPoint);
+        if (objectTobeHeld.GetComponent<Defense>() != null && inventoryList[availableIdx].Item2 > 1)    // since we spawn additional defenses when we deploy them, we also need to despawn the extras upon pick up
+        {
+            base.Despawn(objectTobeHeld, DespawnType.Pool);
+            Debug.Assert(previouslyHeldGO != null && previouslyHeldGO.GetComponent<Defense>() != null, "Previously held object has to be a defense as well.");
+            inventoryList[availableIdx] = Tuple.Create(previouslyHeldGO, inventoryList[availableIdx].Item2);
+        }
+        if (availableIdx == _currentlyHeldIdx) // Don't hide object, update UI
+        {
+            UpdateInventoryUI(inventoryList[availableIdx].Item1.GetComponent<PickupableObject>().objectItem.ItemName,
+                inventoryList[availableIdx].Item2.ToString());
+        }
         else // Hide object 
         {
             if (IsServer)
             {
-                SetMeshStatusClientRpc(inventoryList[emptyIdx].Item1.gameObject.GetComponent<NetworkObject>(), false);
+                SetMeshStatusClientRpc(inventoryList[availableIdx].Item1.gameObject.GetComponent<NetworkObject>(), false);
             }
             else
             {
-                SetMeshStatusServerRpc(inventoryList[emptyIdx].Item1.gameObject.GetComponent<NetworkObject>(), false);
+                SetMeshStatusServerRpc(inventoryList[availableIdx].Item1.gameObject.GetComponent<NetworkObject>(), false);
             }
         }
         //isCarrying = true;
-        if (inventoryList[emptyIdx].Item1.GetComponent<Iweapon>() != null)
+        if (inventoryList[availableIdx].Item1.GetComponent<Iweapon>() != null)
         {
-            weaponContext.SetWeapon(inventoryList[emptyIdx].Item1.GetComponent<Iweapon>(), transform);
+            weaponContext.SetWeapon(inventoryList[availableIdx].Item1.GetComponent<Iweapon>(), transform);
         }
+        
+
     }
 
 
@@ -626,18 +638,60 @@ public class Player : Character, ITrackable
         item.gameObject.GetComponent<PickupableObject>().DisableOrEnableMesh(ifActive);
     }
 
+
+    // Even though there is a SpawnItem() method in StorageAndCrafting, have to create a separate one since StorageAndCrafting does not necessarily have player reference 
+    private void SpawnItem(string itemName, int numOfItem = 1, int availableIdx = -1)
+    {
+        SpawnItemServerRpc(itemName, numOfItem, availableIdx);
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    private void SpawnItemServerRpc(string itemName, int numOfItem, int availableIdx, NetworkConnection networkConnection = null)
+    {
+        Item item = SOManager.Instance.AllItemsNameToItemMapping[itemName];
+        GameObject itemPrefab = SOManager.Instance.ItemPrefabMapping[item];
+        GameObject itemGameObject = Instantiate(itemPrefab, transform.position + transform.right * (float)1.5, Quaternion.identity);
+        itemGameObject.GetComponent<PickupableObject>().numOfItem = numOfItem;
+        base.Spawn(itemGameObject, networkConnection);
+
+        EquipClientWithItemTakenOutClientRpc(networkConnection, availableIdx, itemGameObject.GetComponent<NetworkObject>());
+    }
+
+    [TargetRpc]
+    private void EquipClientWithItemTakenOutClientRpc(NetworkConnection conn, int availableIdx, NetworkObject spawnedItemNetworkObject)
+    {
+        GameObject pickUpObject = spawnedItemNetworkObject.gameObject;
+        if (availableIdx != -1)
+        {
+            pickup(pickUpObject, availableIdx);
+        }
+        else
+        {
+            int idx = DeterminePickupIdx(pickUpObject);
+            if (idx != -1)
+            {
+                pickup(pickUpObject, idx);
+            }
+            else
+            {
+                // Todo: Store in inventory
+            }
+
+        }
+    }
+
     public void Use()
     {        
         if (_input.attack)
         {
             _input.attack = false;
             if (isUsingCraftingTable) { return; } // Damn... spent forever to figure out this bug, make sure this if is within if (_input.attack) and reset _input.attack = false regardless of any condition
-            if (!isInventorySlotEmpty(_currentlyHeldIdx) && inventoryList[CurrentlyHeldIdx].Item1.GetComponent<Wrench>() != null)
+            if (!isInventorySlotEmpty(_currentlyHeldIdx) && inventoryList[_currentlyHeldIdx].Item1.GetComponent<Wrench>() != null)
             {
                 // meaning player wants to build instead of attack
                 return;
             }
-            if (!isInventorySlotEmpty(_currentlyHeldIdx) && inventoryList[CurrentlyHeldIdx].Item1.GetComponent<Defense>() != null)
+            if (!isInventorySlotEmpty(_currentlyHeldIdx) && inventoryList[_currentlyHeldIdx].Item1.GetComponent<Defense>() != null)
             {
                 if (!inventoryList[_currentlyHeldIdx].Item1.GetComponent<Defense>().Deploy()) { return; }
 
@@ -647,9 +701,7 @@ public class Player : Character, ITrackable
                 {
                     string itemName = inventoryList[_currentlyHeldIdx].Item1.GetComponent<PickupableObject>().objectItem.ItemName;
                     MakeInventorySlotEmpty(CurrentlyHeldIdx);
-                    StorageAndCrafting.Instance.SpawnItem(itemName); // create a new one and pick it up
-                    UpdateInventorySlot(_currentlyHeldIdx, Tuple.Create(inventoryList[_currentlyHeldIdx].Item1, defenseHeldNumber - 1));
-                    UpdateInventoryUI(itemName, (defenseHeldNumber - 1).ToString());
+                    SpawnItem(itemName, defenseHeldNumber - 1, _currentlyHeldIdx); // create a new one and pick it up
                 } else
                 {
                     UpdateInventoryUI("Fist", "");

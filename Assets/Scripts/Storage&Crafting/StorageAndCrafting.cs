@@ -6,22 +6,12 @@ using FishNet.Object;
 using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.EventSystems;
-using UnityEngine.InputSystem.LowLevel;
 using FishNet.Connection;
-
-[Serializable]
-class ItemPrefabMapping
-{
-    public Item item;
-    public GameObject prefab;
-}
 
 public class StorageAndCrafting : Interactable, ITriggerCollider
 {
     public static StorageAndCrafting Instance { get; private set; }
 
-    
-    [SerializeField] private List<ItemPrefabMapping> AllPrefabsMapping;    
     [SerializeField] private Transform craftingCanvas;
     [HideInInspector] public Player playerReference;
     [SerializeField] private Transform CostContainer;
@@ -31,10 +21,7 @@ public class StorageAndCrafting : Interactable, ITriggerCollider
         get; private set;
     }
 
-    public Dictionary<Item, GameObject> ItemPrefabMapping
-    {
-        get; private set;
-    }
+
 
     /*
      * Documenting all places ItemChanged delegate is invoked:
@@ -62,11 +49,6 @@ public class StorageAndCrafting : Interactable, ITriggerCollider
             {
                 Items[item.ItemType].Add(item, 10); // temp: modify back to 0
             }
-            ItemPrefabMapping = new Dictionary<Item, GameObject>();
-            foreach (ItemPrefabMapping itemPrefabMapping in AllPrefabsMapping)
-            {
-                ItemPrefabMapping.Add(itemPrefabMapping.item, itemPrefabMapping.prefab);
-            }            
         }
     }
 
@@ -146,34 +128,42 @@ public class StorageAndCrafting : Interactable, ITriggerCollider
         ItemChanged?.Invoke(item);
     }
 
-    public void SpawnItem(string itemName)
+    // There should be a very similar SpawnItem() function in player since sometimes spawn needs to occur when storage.playerReference is null, consider that as well when updating
+    public void SpawnItem(string itemName, int availableIdx = -1)
     {        
-        SpawnItemServerRpc(itemName);
+        SpawnItemServerRpc(itemName, availableIdx);
     }
 
     [ServerRpc(RequireOwnership = false)]
-    private void SpawnItemServerRpc(string itemName, NetworkConnection networkConnection = null)
+    private void SpawnItemServerRpc(string itemName, int availableIdx, NetworkConnection networkConnection = null)
     {
         Item item = SOManager.Instance.AllItemsNameToItemMapping[itemName];
-        GameObject itemPrefab = ItemPrefabMapping[item];
+        GameObject itemPrefab = SOManager.Instance.ItemPrefabMapping[item];
         GameObject itemGameObject = Instantiate(itemPrefab, transform.position + transform.right * (float)1.5, Quaternion.identity);
-        base.Spawn(itemGameObject);
-        //itemGameObject.GetComponent<PickupableObject>().DisableOrEnableMesh(false); // no effect for some reason  
+        base.Spawn(itemGameObject, networkConnection);
 
-        EquipClientWithItemTakenOutClientRpc(networkConnection, itemGameObject.GetComponent<NetworkObject>());
+        EquipClientWithItemTakenOutClientRpc(networkConnection, availableIdx, itemGameObject.GetComponent<NetworkObject>());
     }
 
     [TargetRpc]
-    private void EquipClientWithItemTakenOutClientRpc(NetworkConnection conn, NetworkObject spawnedItemNetworkObject) 
+    private void EquipClientWithItemTakenOutClientRpc(NetworkConnection conn, int availableIdx, NetworkObject spawnedItemNetworkObject) 
     {
         GameObject pickUpObject = spawnedItemNetworkObject.gameObject;
-        if (playerReference.DeterminePickupIdx(pickUpObject) != -1)
+        if (availableIdx != -1)
         {
-            playerReference.pickup(pickUpObject);
+            playerReference.pickup(pickUpObject, availableIdx);
         }
         else
         {
-            // Todo: Store in inventory
+            int idx = playerReference.DeterminePickupIdx(pickUpObject);
+            if (idx != -1)
+            {
+                playerReference.pickup(pickUpObject, idx);
+            } else
+            {
+                // Todo: Store in inventory
+            }
+
         }
     }
 

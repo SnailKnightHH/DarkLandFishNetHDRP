@@ -38,11 +38,17 @@ public class Defense : PickupableObject, ITriggerCollider
     [ServerRpc(RequireOwnership = false, RunLocally = true)]
     private void ChangeMaterialServerRpc(int materialIdx)
     {
+        changeMaterialLocal(materialIdx);
         ChangeMaterialObserversRpc(materialIdx);
     }
 
     [ObserversRpc]
     private void ChangeMaterialObserversRpc(int materialIdx)
+    {
+        changeMaterialLocal(materialIdx);
+    }
+
+    private void changeMaterialLocal(int materialIdx)
     {
         Material EquipMaterial = DeployedMaterial;
         switch (materialIdx)
@@ -65,11 +71,15 @@ public class Defense : PickupableObject, ITriggerCollider
         }
     }
 
+    /// <summary>
+    /// Determine if defense can be deployed and updates mesh accordingly.
+    /// </summary>
+    /// <returns>If the defense can be deployed</returns>
     public bool IfCanDeploy()
     {
         if (numOfObjectsInMeshTriggerCollider == 0)
         {
-            if (IsHost)
+            if (IsServer)
             {
                 ChangeMaterialObserversRpc(1);
             } else
@@ -81,7 +91,7 @@ public class Defense : PickupableObject, ITriggerCollider
         }
         else
         {
-            if (IsHost)
+            if (IsServer)
             {
                 ChangeMaterialObserversRpc(2);
             }
@@ -123,7 +133,7 @@ public class Defense : PickupableObject, ITriggerCollider
         ChangeObjectOwnershipServerRpc();    // so spawned objects can follow player 
         SetCarryMountTransform(_defenseCarryMountPoint);
         UpdateIsDeployedServerRpc(false);
-        IfCanDeploy();
+        CanDeploy = IfCanDeploy();
         UpdatePickUpStatusServerRpc(true);
     }
 
@@ -165,7 +175,6 @@ public class Defense : PickupableObject, ITriggerCollider
         } else
         {
             transform.position = new Vector3(followCarryMountTransform.position.x, HitGroundLocation.y + heightOffset, followCarryMountTransform.position.z);
-            //Debug.Log("Normal debug: " + transform.position + " " + HitGroundLocation);
         }
         //deployPosition = transform.position;
     }    
@@ -190,7 +199,7 @@ public class Defense : PickupableObject, ITriggerCollider
         {
             ChangeMaterialServerRpc(3);
         }
-        rb.constraints = RigidbodyConstraints.FreezeAll;
+        rb.constraints = RigidbodyConstraints.FreezeAll;    // Todo: change back to none once pickup?
         return true;
     }
 
