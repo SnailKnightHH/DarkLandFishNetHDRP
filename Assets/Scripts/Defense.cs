@@ -75,29 +75,36 @@ public class Defense : PickupableObject, ITriggerCollider
     /// Determine if defense can be deployed and updates mesh accordingly.
     /// </summary>
     /// <returns>If the defense can be deployed</returns>
-    public bool IfCanDeploy()
+    public bool IfCanDeploy(bool updateMaterial = true)
     {
         if (numOfObjectsInMeshTriggerCollider == 0)
         {
-            if (IsServer)
+            if (updateMaterial)
             {
-                ChangeMaterialObserversRpc(1);
-            } else
-            {
-                ChangeMaterialServerRpc(1);
+                if (IsServer)
+                {
+                    ChangeMaterialObserversRpc(1);
+                }
+                else
+                {
+                    ChangeMaterialServerRpc(1);
+                }
             }
             return true;
 
         }
         else
         {
-            if (IsServer)
+            if (updateMaterial)
             {
-                ChangeMaterialObserversRpc(2);
-            }
-            else
-            {
-                ChangeMaterialServerRpc(2);
+                if (IsServer)
+                {
+                    ChangeMaterialObserversRpc(2);
+                }
+                else
+                {
+                    ChangeMaterialServerRpc(2);
+                }
             }
             return false;
         }
@@ -226,6 +233,13 @@ public class Defense : PickupableObject, ITriggerCollider
     {
         base.OnStartNetwork();
         meshRenders = GetComponentsInChildren<MeshRenderer>();
-        CanDeploy = IfCanDeploy();
+        if (!isDeployed)
+        {
+            CanDeploy = IfCanDeploy();
+        } else
+        {
+            CanDeploy = IfCanDeploy(false);
+            changeMaterialLocal(3);
+        }
     }
 }

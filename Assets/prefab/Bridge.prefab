@@ -314,37 +314,6 @@ RectTransform:
   m_AnchoredPosition: {x: 201.6, y: 84}
   m_SizeDelta: {x: 40.6737, y: 36.379}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!1 &2016902403876159493
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1478428940925486735}
-  m_Layer: 0
-  m_Name: ColliderCenter
-  m_TagString: Untagged
-  m_Icon: {fileID: -5397416234189338067, guid: 0000000000000000d000000000000000, type: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1478428940925486735
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2016902403876159493}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 8.87, y: -0.51, z: 9.23}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 2048274716466562503}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2099404668612445318
 GameObject:
   m_ObjectHideFlags: 0
@@ -971,7 +940,6 @@ Transform:
   m_Children:
   - {fileID: 7728004795275524976}
   - {fileID: 3145731193162658344}
-  - {fileID: 1478428940925486735}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &4327890457762563209
@@ -991,7 +959,6 @@ MonoBehaviour:
   _networkObjectCache: {fileID: 8556439161862349829}
   RadialProgress: {fileID: 3282729534271654589}
   ConstructionFinishedText: {fileID: 5318629674290552093}
-  ColliderCenterTransform: {fileID: 1478428940925486735}
   isBuilt: 0
   structureSO: {fileID: 11400000, guid: 5fc3c8827c0875f4ca3bfb521c068f2a, type: 2}
   totalNumOfItemsRequired: 0

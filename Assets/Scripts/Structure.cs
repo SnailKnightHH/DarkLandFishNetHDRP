@@ -17,11 +17,8 @@ public class Structure : Interactable
 
     private float timeTakeToBuildOneitem = 1f;
 
-    [SerializeField] private Transform ColliderCenterTransform;
-    private BoxCollider boxCollider
-    {
-        get; set;
-    }
+    // I could have used tags for distinction, but for now the norm is: colliders[0]: collider before completion; colliders[1]: collider after completion.
+    private Collider[] colliders;
 
     public bool BuildButtonReleased
     {
@@ -123,7 +120,9 @@ public class Structure : Interactable
         ConstructionFinishedText.enabled = false;
         RadialProgress.enabled = false;
         RadialProgress.fillAmount = 0;
-        
+        colliders = GetComponentsInChildren<Collider>();
+        colliders[0].enabled = true;
+        colliders[1].enabled = false;
     }
 
     [ServerRpc(RequireOwnership = false)]
@@ -170,10 +169,11 @@ public class Structure : Interactable
     // Even though isBuilt.Value should be the source of truth, it is quite flaky if used alone due to network delay
     // Therefore, _isBuilt is used as source of truth, and updated immediately with RPCs. Network variable is used to sync data
     // so players who join late can have the correct information
-    [ServerRpc(RequireOwnership = false)]
+    [ServerRpc(RequireOwnership = false, RunLocally = true)]
     public void UpdateIsBuiltServerRpc()
     {
         isBuilt = true;
+        _isBuilt = true;
         UpdateIsBuiltClientRpc();
     }
 
@@ -183,21 +183,37 @@ public class Structure : Interactable
         _isBuilt = true;
     }
 
-    [ServerRpc(RequireOwnership = false)]
-    public void UpdateStructureBuildStatusServerRpc(bool status)
+    [ServerRpc(RequireOwnership = false, RunLocally = true)]
+    private void UpdateStructureBuildStatusServerRpc(bool status)
     {
+        structureIsBeingBuilt = status;
         UpdateStructureBuildStatusClientRpc(status);
     }
 
     [ObserversRpc]
-    public void UpdateStructureBuildStatusClientRpc(bool status)
+    private void UpdateStructureBuildStatusClientRpc(bool status)
     {
         structureIsBeingBuilt = status;
     }
 
-    public bool IsCompleted()
+    [ObserversRpc]
+    private void UpdateColliderClientRpc(bool isCompleted)
     {
-        return totalNumOfItemsAlreadyFilled == totalNumOfItemsRequired;
+        UpdateCollider(isCompleted);
+    }
+
+    [ServerRpc(RequireOwnership = false, RunLocally = true)]
+    private void UpdateColliderServerRpc(bool isCompleted)
+    {
+        UpdateCollider(isCompleted);
+        UpdateColliderClientRpc(isCompleted);
+    }
+
+    private void UpdateCollider(bool isCompleted)
+    {
+        int colliderIdx = isCompleted ? 1 : 0;  // Explicit bool to int conversion
+        colliders[colliderIdx].enabled = true;
+        colliders[1 - colliderIdx].enabled = false;
     }
 
     public IEnumerator Build(Player player)
@@ -225,7 +241,7 @@ public class Structure : Interactable
         {
             UI.UpdateCostRatio(entry);
         }
-        if (IsHost)
+        if (IsServer)
         {
             UpdateStructureBuildStatusClientRpc(true);
         } else
@@ -339,8 +355,14 @@ public class Structure : Interactable
             UpdateIsBuiltServerRpc();
             RadialProgress.enabled = false;
             ConstructionFinishedText.enabled = true;
-            boxCollider.center = ColliderCenterTransform.position;
-            boxCollider.size = new Vector3(boxCollider.size.x, 1, boxCollider.size.z); // Todo: needs adjustments, also this is only for bridge, extract a method out of this and make it rpc
+            if (IsServer)
+            {
+                UpdateColliderClientRpc(true);
+            } else
+            {
+                UpdateColliderServerRpc(true);
+            }
+            
             yield return new WaitForSeconds(1.5f);
             ConstructionFinishedText.enabled = false;
         } else

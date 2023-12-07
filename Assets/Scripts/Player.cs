@@ -726,7 +726,7 @@ public class Player : Character, ITrackable
         if (!isInventorySlotEmpty(_currentlyHeldIdx)
             && inventoryList[CurrentlyHeldIdx].Item1.GetComponent<Wrench>() != null
             && objectToInteract != null
-            && objectToInteract.GetComponent<Structure>() != null
+            && objectToInteract.GetComponentInParent<Structure>() != null
             && IsBuilding)
         {
             inventoryList[CurrentlyHeldIdx].Item1.GetComponent<Wrench>().structure.BuildButtonReleased = true;
@@ -740,7 +740,7 @@ public class Player : Character, ITrackable
             && !isInventorySlotEmpty(_currentlyHeldIdx)
             && inventoryList[CurrentlyHeldIdx].Item1.GetComponent<Wrench>() != null
             && objectToInteract != null
-            && objectToInteract.GetComponent<Structure>() != null
+            && objectToInteract.GetComponentInParent<Structure>() != null
             && !IsBuilding)
         {
             StartCoroutine(BuildCoroutine());
@@ -749,7 +749,7 @@ public class Player : Character, ITrackable
 
     private IEnumerator BuildCoroutine()
     {
-        inventoryList[CurrentlyHeldIdx].Item1.GetComponent<Wrench>().structure = objectToInteract.GetComponent<Structure>();
+        inventoryList[CurrentlyHeldIdx].Item1.GetComponent<Wrench>().structure = objectToInteract.GetComponentInParent<Structure>();
         yield return StartCoroutine(inventoryList[CurrentlyHeldIdx].Item1.GetComponent<Wrench>().Build(this));
         inventoryList[CurrentlyHeldIdx].Item1.GetComponent<Wrench>().structure.BuildButtonReleased = false;
         _input.build = false;        
@@ -846,7 +846,7 @@ public class Player : Character, ITrackable
             }
             if (objectToInteract != null)
             {
-                structure = objectToInteract.GetComponent<Structure>();
+                structure = objectToInteract.GetComponentInParent<Structure>();
                 if (structure != null && !structure.IsBuilt)
                 {
                     structure.UI.canDisplay(true);                
