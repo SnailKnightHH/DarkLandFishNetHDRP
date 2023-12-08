@@ -55,28 +55,66 @@ public class ListHash<T>
 
 public class RandomizedObjectSpawner : NetworkBehaviour
 {
-    [SerializeField] int numberOfObjectsToSpawn = 10;
-    ListHash<Vector3> locationsToSpawn;
-    [SerializeField] List<GameObject> houses;
+    [SerializeField] private LayerMask walkableLayerMask;
+    [SerializeField] private int numberOfHousesToSpawn = 5;
+    [SerializeField] private int numberOfEnemyToSpawn = 5;
+
+    private ListHash<Vector3> houseLocationsToSpawn;
+    private ListHash<Vector3> enemyLocationsToSpawn;
+    [SerializeField] private List<GameObject> houses;
+    [SerializeField] private List<GameObject> enemies;
+
+    private float airborneEnemySpawnHeightOffset = 10f;
 
     public override void OnStartServer()
     {
         base.OnStartServer();
-        if (!IsServer && !IsHost) { return; }        
-        locationsToSpawn = new ListHash<Vector3>();
-        for (int i = 0; i < transform.childCount; i++)
-        {
-            locationsToSpawn.Insert(transform.GetChild(i).localPosition);
-        }
+        if (!IsServer && !IsHost) { return; }
+        Transform houseLocations = transform.Find("HouseLocations");
 
-        Debug.Assert(numberOfObjectsToSpawn <= locationsToSpawn.Count, "Cannot spawn more objects than locations.");
-        for (int i = 0; i < numberOfObjectsToSpawn; i++)
+        houseLocationsToSpawn = new ListHash<Vector3>();
+        for (int i = 0; i < houseLocations.childCount; i++)
         {
-            Vector3 location = locationsToSpawn.GetRandom();
+            houseLocationsToSpawn.Insert(houseLocations.GetChild(i).position);
+        }
+        Debug.Assert(numberOfHousesToSpawn <= houseLocationsToSpawn.Count, "Cannot spawn more objects than locations.");
+
+        Transform enemyLocations = transform.Find("EnemyLocations");
+        enemyLocationsToSpawn = new ListHash<Vector3>();
+        for (int i = 0; i < enemyLocations.childCount; i++)
+        {
+            if (enemyLocations.GetChild(i).gameObject.activeSelf)
+            {
+                enemyLocationsToSpawn.Insert(enemyLocations.GetChild(i).position);
+            }
+        }
+        Debug.Assert(numberOfEnemyToSpawn <= enemyLocationsToSpawn.Count, "Cannot spawn more objects than locations.");
+
+        for (int i = 0; i < numberOfHousesToSpawn; i++)
+        {
+            Vector3 location = houseLocationsToSpawn.GetRandom();
             GameObject housePrefab = houses[Random.Range(0, houses.Count)]; // houses can be duplicate for now
             GameObject houseInstance = Instantiate(housePrefab, location, housePrefab.transform.rotation);
+            Utilities.DetermineRotationBySurfaceNormal(houseInstance.transform, walkableLayerMask);
             base.Spawn(houseInstance);
-            locationsToSpawn.Remove(location); // to ensure no duplicate locations are selected 
+            houseLocationsToSpawn.Remove(location); // to ensure no duplicate locations are selected 
+        }
+
+        for (int i = 0; i < numberOfEnemyToSpawn; i++)
+        {
+            Vector3 location = enemyLocationsToSpawn.GetRandom();
+            GameObject enemyPrefab = enemies[Random.Range(0, enemies.Count)]; 
+            GameObject enemyInstance = Instantiate(enemyPrefab, location, enemyPrefab.transform.rotation);
+            if (!enemyInstance.GetComponent<Enemy>().IsAirBorne)
+            {
+                enemyInstance.transform.position = Utilities.RaycastHitPointPosition(enemyInstance.transform, walkableLayerMask);
+            } else
+            {
+                Vector3 hitPosition = Utilities.RaycastHitPointPosition(enemyInstance.transform, walkableLayerMask);
+                enemyInstance.transform.position = new Vector3(hitPosition.x, hitPosition.y + airborneEnemySpawnHeightOffset, hitPosition.z);
+            }
+            base.Spawn(enemyInstance);
+            enemyLocationsToSpawn.Remove(location);
         }
     }
     

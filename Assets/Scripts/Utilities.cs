@@ -17,4 +17,25 @@ public static class Utilities
         Vector3 spherePosition = new Vector3(transform.position.x, transform.position.y - GroundedOffset, transform.position.z);
         return Physics.CheckSphere(spherePosition, GroundedRadius, GroundLayers, QueryTriggerInteraction.Ignore);
     }
+
+    public static void DetermineRotationBySurfaceNormal(Transform transform, LayerMask walkableLayerMask)
+    {
+        if (RotaryHeart.Lib.PhysicsExtension.Physics.Raycast(transform.position, -Vector3.up, out RaycastHit hitInfo, Mathf.Infinity, walkableLayerMask, QueryTriggerInteraction.Ignore, RotaryHeart.Lib.PhysicsExtension.PreviewCondition.Both))
+        {
+            Quaternion rotationBasedOnSurface = Quaternion.FromToRotation(Vector3.up, hitInfo.normal);
+            transform.rotation = Quaternion.Euler(rotationBasedOnSurface.eulerAngles.x, transform.eulerAngles.y, rotationBasedOnSurface.eulerAngles.z);
+            transform.position = hitInfo.point;
+        }
+    }
+
+    public static Vector3 RaycastHitPointPosition(Transform transform, LayerMask walkableLayerMask)
+    {
+        if (RotaryHeart.Lib.PhysicsExtension.Physics.Raycast(transform.position, -Vector3.up, out RaycastHit hitInfo, Mathf.Infinity, walkableLayerMask, QueryTriggerInteraction.Ignore, RotaryHeart.Lib.PhysicsExtension.PreviewCondition.Both))
+        {
+            return hitInfo.point;
+        } else
+        {
+            return Vector3.zero;
+        }
+    }
 }

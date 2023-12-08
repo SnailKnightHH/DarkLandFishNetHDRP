@@ -468,7 +468,7 @@ Transform:
   m_GameObject: {fileID: 1124514962480168903}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0.109, y: -0.347, z: 0.337}
+  m_LocalPosition: {x: 0.109, y: 0.124, z: 0.337}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -486,10 +486,10 @@ Light:
   m_Type: 0
   m_Shape: 0
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_Intensity: 12.390506
-  m_Range: 144.72
-  m_SpotAngle: 65.83823
-  m_InnerSpotAngle: 49.33046
+  m_Intensity: 169.02132
+  m_Range: 40
+  m_SpotAngle: 30
+  m_InnerSpotAngle: 1
   m_CookieSize: 10
   m_Shadows:
     m_Type: 0
@@ -529,12 +529,12 @@ Light:
   m_LightShadowCasterMode: 2
   m_AreaSize: {x: 0.5, y: 0.5}
   m_BounceIntensity: 1
-  m_ColorTemperature: 2519
+  m_ColorTemperature: 3334
   m_UseColorTemperature: 1
   m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 0}
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
-  m_ShadowRadius: 0
+  m_ShadowRadius: 18.42
   m_ShadowAngle: 0
 --- !u!114 &5868102088227080111
 MonoBehaviour:
@@ -548,26 +548,26 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_Intensity: 12.5
+  m_Intensity: 36.186523
   m_EnableSpotReflector: 1
   m_LuxAtDistance: 1
-  m_InnerSpotPercent: 0
+  m_InnerSpotPercent: 1.5
   m_SpotIESCutoffPercent: 100
   m_LightDimmer: 1
   m_VolumetricDimmer: 1
   m_LightUnit: 0
   m_FadeDistance: 10000
-  m_VolumetricFadeDistance: 10000
+  m_VolumetricFadeDistance: 1000
   m_AffectDiffuse: 1
   m_AffectSpecular: 1
   m_NonLightmappedOnly: 0
   m_ShapeWidth: 0.5
   m_ShapeHeight: 0.5
   m_AspectRatio: 1
-  m_ShapeRadius: 0.025
+  m_ShapeRadius: 18.42
   m_SoftnessScale: 1
   m_UseCustomSpotLightShadowCone: 0
-  m_CustomSpotLightShadowCone: 30
+  m_CustomSpotLightShadowCone: 1
   m_MaxSmoothness: 0.99
   m_ApplyRangeAttenuation: 1
   m_DisplayAreaLightEmissiveMesh: 0
@@ -2518,6 +2518,7 @@ GameObject:
   - component: {fileID: 8444976738456724968}
   - component: {fileID: 3640609152149562834}
   - component: {fileID: 3815647825141395648}
+  - component: {fileID: 8684116684949190275}
   m_Layer: 10
   m_Name: PlayerCapsuleNetwork 1
   m_TagString: Player
@@ -2818,11 +2819,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   <IsNested>k__BackingField: 0
   <ComponentIndex>k__BackingField: 0
-  <PredictedSpawn>k__BackingField: {fileID: 0}
+  <PredictedSpawn>k__BackingField: {fileID: 8684116684949190275}
   _networkBehaviours:
   - {fileID: 1937627652079172831}
   - {fileID: 4702497495277674664}
   - {fileID: 3815647825141395648}
+  - {fileID: 8684116684949190275}
   <ParentNetworkObject>k__BackingField: {fileID: 0}
   <ChildNetworkObjects>k__BackingField: []
   SerializedTransformProperties:
@@ -2884,6 +2886,24 @@ MonoBehaviour:
     X: 0
     Y: 0
     Z: 0
+--- !u!114 &8684116684949190275
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4294038405451736470}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e2b597e1828355a4d994a69cbb11ef85, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _componentIndexCache: 3
+  _addedNetworkObject: {fileID: 3640609152149562834}
+  _networkObjectCache: {fileID: 3640609152149562834}
+  _allowSpawning: 1
+  _allowDespawning: 1
+  _allowSyncTypes: 1
 --- !u!1 &4876224276037466510
 GameObject:
   m_ObjectHideFlags: 0

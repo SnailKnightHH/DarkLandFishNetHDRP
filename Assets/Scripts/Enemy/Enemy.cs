@@ -5,6 +5,7 @@ using UnityEngine.AI;
 
 public abstract class Enemy : Character, ITriggerCollider, ITrackable
 {
+    public bool IsAirBorne { get; protected set; }
     [SerializeField] protected Transform eyeTransform;
     protected Transform pathFindingDestination;
     protected Transform initialTransform;
@@ -29,6 +30,7 @@ public abstract class Enemy : Character, ITriggerCollider, ITrackable
     protected override void Awake()
     {
         base.Awake();
+        IsAirBorne = false;
     }
 
     protected virtual void Start()

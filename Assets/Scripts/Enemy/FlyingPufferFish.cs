@@ -13,6 +13,7 @@ public class FlyingPufferFish : Enemy
     protected override void Awake()
     {
         base.Awake();
+        IsAirBorne = true;
     }
 
     protected override void Start()
