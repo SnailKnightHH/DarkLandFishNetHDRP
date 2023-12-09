@@ -13,7 +13,7 @@ public class PickupableObject : Carryable, IThrowable
     private int _numOfItem = 1;
 
     [SyncVar(Channel = FishNet.Transporting.Channel.Reliable, ReadPermissions = ReadPermission.Observers, WritePermissions = WritePermission.ServerOnly)]
-    private bool IsPickedUp;
+    [HideInInspector] private bool IsPickedUp;
     public bool isPickedUp => IsPickedUp;
     public int numOfItem
     {

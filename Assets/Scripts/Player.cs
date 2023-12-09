@@ -231,7 +231,7 @@ public class Player : Character, ITrackable
         Move();
         interact();
         Use();
-        Build();
+        UseTool();
         //ThrowItem();
         ItemSwitch();        
         //Debug.Log("Camera forward: " + cameraTransform.forward);
@@ -686,9 +686,9 @@ public class Player : Character, ITrackable
         {
             _input.attack = false;
             if (isUsingCraftingTable) { return; } // Damn... spent forever to figure out this bug, make sure this if is within if (_input.attack) and reset _input.attack = false regardless of any condition
-            if (!isInventorySlotEmpty(_currentlyHeldIdx) && inventoryList[_currentlyHeldIdx].Item1.GetComponent<Wrench>() != null)
+            if (!isInventorySlotEmpty(_currentlyHeldIdx) && inventoryList[_currentlyHeldIdx].Item1.GetComponent<Tool>() != null)
             {
-                // meaning player wants to build instead of attack
+                // meaning player wants to use tool instead of attack
                 return;
             }
             if (!isInventorySlotEmpty(_currentlyHeldIdx) && inventoryList[_currentlyHeldIdx].Item1.GetComponent<Defense>() != null)
@@ -724,34 +724,34 @@ public class Player : Character, ITrackable
     private void BuildButtonReleasedAction()
     {
         if (!isInventorySlotEmpty(_currentlyHeldIdx)
-            && inventoryList[CurrentlyHeldIdx].Item1.GetComponent<Wrench>() != null
+            && inventoryList[CurrentlyHeldIdx].Item1.GetComponent<Tool>() != null
             && objectToInteract != null
             && objectToInteract.GetComponentInParent<Structure>() != null
             && IsBuilding)
         {
-            inventoryList[CurrentlyHeldIdx].Item1.GetComponent<Wrench>().structure.BuildButtonReleased = true;
+            inventoryList[CurrentlyHeldIdx].Item1.GetComponent<Tool>().structure.BuildButtonReleased = true;
         }
     }
 
 
-    private void Build()
+    private void UseTool()
     {
         if (_input.build
             && !isInventorySlotEmpty(_currentlyHeldIdx)
-            && inventoryList[CurrentlyHeldIdx].Item1.GetComponent<Wrench>() != null
+            && inventoryList[CurrentlyHeldIdx].Item1.GetComponent<Tool>() != null
             && objectToInteract != null
             && objectToInteract.GetComponentInParent<Structure>() != null
             && !IsBuilding)
         {
-            StartCoroutine(BuildCoroutine());
+            StartCoroutine(UseToolCoroutine());
         }
     }
 
-    private IEnumerator BuildCoroutine()
+    private IEnumerator UseToolCoroutine()
     {
-        inventoryList[CurrentlyHeldIdx].Item1.GetComponent<Wrench>().structure = objectToInteract.GetComponentInParent<Structure>();
-        yield return StartCoroutine(inventoryList[CurrentlyHeldIdx].Item1.GetComponent<Wrench>().Build(this));
-        inventoryList[CurrentlyHeldIdx].Item1.GetComponent<Wrench>().structure.BuildButtonReleased = false;
+        inventoryList[CurrentlyHeldIdx].Item1.GetComponent<Tool>().structure = objectToInteract.GetComponentInParent<Structure>();
+        yield return StartCoroutine(inventoryList[CurrentlyHeldIdx].Item1.GetComponent<Tool>().UseTool(this));
+        inventoryList[CurrentlyHeldIdx].Item1.GetComponent<Tool>().structure.BuildButtonReleased = false;
         _input.build = false;        
     }
 

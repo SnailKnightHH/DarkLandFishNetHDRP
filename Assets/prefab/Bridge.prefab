@@ -85,7 +85,7 @@ GameObject:
   m_Component:
   - component: {fileID: 259564146001156516}
   - component: {fileID: 8315596065744380743}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: ColliderBeforeCompletion
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -138,7 +138,7 @@ GameObject:
   m_Component:
   - component: {fileID: 9126524976182129876}
   - component: {fileID: 7363904288581214944}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: ColliderAfterCompletion
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -379,14 +379,6 @@ MonoBehaviour:
   _componentIndexCache: 1
   _addedNetworkObject: {fileID: 6424670319007087926}
   _networkObjectCache: {fileID: 6424670319007087926}
-  costPositions:
-  - {fileID: 5449044459721959634}
-  - {fileID: 4500712697065430654}
-  - {fileID: 4528925524546330447}
-  - {fileID: 1679026055182802444}
-  - {fileID: 916034144380709911}
-  CostTemplate: {fileID: 1034556024024841904}
-  CostListContainer: {fileID: 4240064498966078653}
   structureSO: {fileID: 11400000, guid: 5fc3c8827c0875f4ca3bfb521c068f2a, type: 2}
 --- !u!1 &2560689398709210005
 GameObject:
@@ -710,7 +702,7 @@ GameObject:
   - component: {fileID: 4529469854672467930}
   - component: {fileID: 678182805897339426}
   - component: {fileID: 6320020866596699445}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: BridgeMesh
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1173,7 +1165,7 @@ GameObject:
   - component: {fileID: 6184042879149361436}
   - component: {fileID: 6424670319007087926}
   - component: {fileID: 7453053425826662082}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Bridge
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1218,7 +1210,7 @@ MonoBehaviour:
   <ParentNetworkObject>k__BackingField: {fileID: 0}
   <ChildNetworkObjects>k__BackingField: []
   SerializedTransformProperties:
-    Position: {x: -265.92416, y: 1.0948188, z: 32.187298}
+    Position: {x: 89.075836, y: -16.739304, z: 86.224174}
     Rotation: {x: -0, y: -0, z: -0, w: 1}
     LocalScale: {x: 1, y: 1, z: 1}
   _isNetworked: 1

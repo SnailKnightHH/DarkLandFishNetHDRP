@@ -194,8 +194,9 @@ public abstract class Structure : Interactable
 
     protected abstract void FinishBuildingAction();
 
-    public IEnumerator Build(Player player)
+    public IEnumerator UseTool(Player player, ToolType currentlyEquippedToolType)
     {
+        if (currentlyEquippedToolType != structureSO.ToolType) { yield break; }
         if (_isBuilt)
         {
             ConstructionFinishedText.text = "Construction Complete";

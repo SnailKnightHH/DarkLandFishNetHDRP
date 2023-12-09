@@ -5,29 +5,13 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
 
-public class Wrench : NetworkBehaviour
-{    
-    public Structure structure
-    {
-        get; set;
+public class Wrench : Tool // Todo: instead of inheritance, just make tool a concrete class, delete subclasses and have a scriptable object field that has tooltype -> save memory 
+{
+    public override ToolType ToolType { 
+        get
+        {
+            return ToolType.Wrench;
+        }
     }
 
-    [SerializeField] private Material finishedMaterial;
-
-    public IEnumerator Build(Player player)
-    {
-        yield return StartCoroutine(structure.Build(player));
-    }
-
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
 }

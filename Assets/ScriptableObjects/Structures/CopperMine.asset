@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   StructureName: CopperMine
   StructureIcon: {fileID: 0}
-  StructureType: 2
+  ToolType: 1
   Cost: []
   Description: Harvest this mine to obtain more copper.
   totalNumOfRequiredItems: 5
