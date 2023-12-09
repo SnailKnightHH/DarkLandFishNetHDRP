@@ -19,3 +19,4 @@ MonoBehaviour:
   Description: Harvest this mine to obtain more copper.
   totalNumOfRequiredItems: 5
   IsPaid: 1
+  ItemName: Copper

@@ -58,11 +58,15 @@ public class RandomizedObjectSpawner : NetworkBehaviour
     [SerializeField] private LayerMask walkableLayerMask;
     [SerializeField] private int numberOfHousesToSpawn = 5;
     [SerializeField] private int numberOfEnemyToSpawn = 5;
+    [SerializeField] private int numberOfMineralsToSpawn = 5;
 
     private ListHash<Vector3> houseLocationsToSpawn;
     private ListHash<Vector3> enemyLocationsToSpawn;
+    private ListHash<Vector3> mineralLocationsToSpawn;
     [SerializeField] private List<GameObject> houses;
     [SerializeField] private List<GameObject> enemies;
+    [SerializeField] private List<GameObject> minerals;
+
 
     private float airborneEnemySpawnHeightOffset = 20f;
 
@@ -79,6 +83,17 @@ public class RandomizedObjectSpawner : NetworkBehaviour
         }
         Debug.Assert(numberOfHousesToSpawn <= houseLocationsToSpawn.Count, "Cannot spawn more objects than locations.");
 
+        for (int i = 0; i < numberOfHousesToSpawn; i++)
+        {
+            Vector3 location = houseLocationsToSpawn.GetRandom();
+            GameObject housePrefab = houses[Random.Range(0, houses.Count)]; // houses can be duplicate for now
+            GameObject houseInstance = Instantiate(housePrefab, location, housePrefab.transform.rotation);
+            Utilities.DetermineRotationBySurfaceNormal(houseInstance.transform, walkableLayerMask);
+            base.Spawn(houseInstance);
+            houseLocationsToSpawn.Remove(location); // to ensure no duplicate locations are selected 
+        }
+
+
         Transform enemyLocations = transform.Find("EnemyLocations");
         enemyLocationsToSpawn = new ListHash<Vector3>();
         for (int i = 0; i < enemyLocations.childCount; i++)
@@ -89,16 +104,6 @@ public class RandomizedObjectSpawner : NetworkBehaviour
             }
         }
         Debug.Assert(numberOfEnemyToSpawn <= enemyLocationsToSpawn.Count, "Cannot spawn more objects than locations.");
-
-        for (int i = 0; i < numberOfHousesToSpawn; i++)
-        {
-            Vector3 location = houseLocationsToSpawn.GetRandom();
-            GameObject housePrefab = houses[Random.Range(0, houses.Count)]; // houses can be duplicate for now
-            GameObject houseInstance = Instantiate(housePrefab, location, housePrefab.transform.rotation);
-            Utilities.DetermineRotationBySurfaceNormal(houseInstance.transform, walkableLayerMask);
-            base.Spawn(houseInstance);
-            houseLocationsToSpawn.Remove(location); // to ensure no duplicate locations are selected 
-        }
 
         for (int i = 0; i < numberOfEnemyToSpawn; i++)
         {
@@ -115,6 +120,27 @@ public class RandomizedObjectSpawner : NetworkBehaviour
             }
             base.Spawn(enemyInstance);
             enemyLocationsToSpawn.Remove(location);
+        }
+
+        Transform mineralLocations = transform.Find("MineralLocations");
+        mineralLocationsToSpawn = new ListHash<Vector3>();
+        for (int i = 0; i < mineralLocations.childCount; i++)
+        {
+            if (mineralLocations.GetChild(i).gameObject.activeSelf)
+            {
+                mineralLocationsToSpawn.Insert(mineralLocations.GetChild(i).position);
+            }
+        }
+        Debug.Assert(numberOfMineralsToSpawn <= mineralLocationsToSpawn.Count, "Cannot spawn more objects than locations.");
+
+        for (int i = 0; i < numberOfMineralsToSpawn; i++)
+        {
+            Vector3 location = mineralLocationsToSpawn.GetRandom();
+            GameObject mineralPrefab = minerals[Random.Range(0, minerals.Count)];
+            GameObject mineralInstance = Instantiate(mineralPrefab, location, mineralPrefab.transform.rotation);
+            Utilities.DetermineRotationBySurfaceNormal(mineralInstance.transform, walkableLayerMask);
+            base.Spawn(mineralInstance);
+            mineralLocationsToSpawn.Remove(location);
         }
     }
     

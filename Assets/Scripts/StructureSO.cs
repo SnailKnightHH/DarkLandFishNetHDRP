@@ -22,4 +22,5 @@ public class StructureSO : ScriptableObject
     // For already paid structures, this should still not be zero since it determines how long the player can mine this mineral
     public int totalNumOfRequiredItems;
     public bool IsPaid;
+    public string ItemName;
 }

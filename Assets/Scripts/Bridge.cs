@@ -29,7 +29,7 @@ public class Bridge : Structure
     }
 
                 
-    protected override void FinishBuildingAction()
+    protected override void FinishBuildingAction(Player player)
     {
         if (IsServer)
         {

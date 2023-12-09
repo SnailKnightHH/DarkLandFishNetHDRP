@@ -162,7 +162,7 @@ Transform:
   m_GameObject: {fileID: 1221070485487057166}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 0.97, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -371,6 +371,7 @@ GameObject:
   - component: {fileID: 4771190353377291473}
   - component: {fileID: 5687579985480516860}
   - component: {fileID: 9125451368002875751}
+  - component: {fileID: 5665567812864687641}
   m_Layer: 0
   m_Name: CopperMine
   m_TagString: Untagged
@@ -387,7 +388,7 @@ Transform:
   m_GameObject: {fileID: 5566280610811046013}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 89.075836, y: -16.739304, z: 86.224174}
+  m_LocalPosition: {x: 0, y: 0.966, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -416,8 +417,8 @@ MonoBehaviour:
   <ParentNetworkObject>k__BackingField: {fileID: 0}
   <ChildNetworkObjects>k__BackingField: []
   SerializedTransformProperties:
-    Position: {x: 55, y: -16.739304, z: 86.224174}
-    Rotation: {x: -0, y: -0, z: -0, w: 1}
+    Position: {x: 0, y: 0.966, z: 0}
+    Rotation: {x: 0, y: 0, z: 0, w: 1}
     LocalScale: {x: 1, y: 1, z: 1}
   _isNetworked: 1
   _isGlobal: 0
@@ -426,7 +427,7 @@ MonoBehaviour:
   NetworkObserver: {fileID: 0}
   <PrefabId>k__BackingField: 12
   <SpawnableCollectionId>k__BackingField: 0
-  _scenePathHash: 2578332039
+  _scenePathHash: 0
   <SceneId>k__BackingField: 0
   <AssetPathHash>k__BackingField: 6121953188722370518
 --- !u!114 &9125451368002875751
@@ -451,6 +452,24 @@ MonoBehaviour:
   totalNumOfItemsRequired: 0
   totalNumOfItemsAlreadyFilled: 0
   UI: {fileID: 5640867379247200531}
+--- !u!114 &5665567812864687641
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5566280610811046013}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e2b597e1828355a4d994a69cbb11ef85, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _componentIndexCache: 255
+  _addedNetworkObject: {fileID: 5687579985480516860}
+  _networkObjectCache: {fileID: 0}
+  _allowSpawning: 1
+  _allowDespawning: 1
+  _allowSyncTypes: 1
 --- !u!1 &7050996841045987320
 GameObject:
   m_ObjectHideFlags: 0

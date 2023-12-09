@@ -1,3 +1,4 @@
+using FishNet.Demo.AdditiveScenes;
 using FishNet.Object;
 using System.Collections;
 using System.Collections.Generic;
@@ -8,8 +9,9 @@ public class CopperMine : Structure
     private MeshRenderer meshRenderer;
     private Collider collider;
 
-    protected override void FinishBuildingAction()
+    protected override void FinishBuildingAction(Player player)
     {
+        player.SpawnItem(structureSO.ItemName, numOfItem: structureSO.totalNumOfRequiredItems);
         StartCoroutine(DestroyAfterDelay());
     }
 

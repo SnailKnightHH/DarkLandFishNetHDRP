@@ -640,7 +640,7 @@ public class Player : Character, ITrackable
 
 
     // Even though there is a SpawnItem() method in StorageAndCrafting, have to create a separate one since StorageAndCrafting does not necessarily have player reference 
-    private void SpawnItem(string itemName, int numOfItem = 1, int availableIdx = -1)
+    public void SpawnItem(string itemName, int numOfItem = 1, int availableIdx = -1)
     {
         SpawnItemServerRpc(itemName, numOfItem, availableIdx);
     }
@@ -651,16 +651,16 @@ public class Player : Character, ITrackable
         Item item = SOManager.Instance.AllItemsNameToItemMapping[itemName];
         GameObject itemPrefab = SOManager.Instance.ItemPrefabMapping[item];
         GameObject itemGameObject = Instantiate(itemPrefab, transform.position + transform.right * (float)1.5, Quaternion.identity);
-        itemGameObject.GetComponent<PickupableObject>().numOfItem = numOfItem;
         base.Spawn(itemGameObject, networkConnection);
 
-        EquipClientWithItemTakenOutClientRpc(networkConnection, availableIdx, itemGameObject.GetComponent<NetworkObject>());
+        EquipClientWithItemTakenOutClientRpc(networkConnection, numOfItem, availableIdx, itemGameObject.GetComponent<NetworkObject>());
     }
 
     [TargetRpc]
-    private void EquipClientWithItemTakenOutClientRpc(NetworkConnection conn, int availableIdx, NetworkObject spawnedItemNetworkObject)
+    private void EquipClientWithItemTakenOutClientRpc(NetworkConnection conn, int numOfItem, int availableIdx, NetworkObject spawnedItemNetworkObject)
     {
         GameObject pickUpObject = spawnedItemNetworkObject.gameObject;
+        pickUpObject.GetComponent<PickupableObject>().numOfItem = numOfItem;
         if (availableIdx != -1)
         {
             pickup(pickUpObject, availableIdx);

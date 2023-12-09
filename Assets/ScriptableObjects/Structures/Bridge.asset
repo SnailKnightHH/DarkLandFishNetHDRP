@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   StructureName: Bridge
   StructureIcon: {fileID: 0}
-  StructureType: 0
+  ToolType: 0
   Cost:
   - Item: {fileID: 11400000, guid: f4de09c54b857c94cabff4724e8341c7, type: 2}
     QuantityRequired: 2
@@ -22,3 +22,5 @@ MonoBehaviour:
     QuantityRequired: 3
   Description: This is a bridge.
   totalNumOfRequiredItems: 5
+  IsPaid: 0
+  ItemName: NA

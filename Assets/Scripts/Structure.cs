@@ -33,7 +33,7 @@ public abstract class Structure : Interactable
 
     private bool structureIsBeingBuilt;
 
-    [SerializeField] StructureSO structureSO;
+    [SerializeField] protected StructureSO structureSO;
     [SyncVar(Channel = FishNet.Transporting.Channel.Reliable, ReadPermissions = ReadPermission.Observers, WritePermissions = WritePermission.ServerOnly)]
     [HideInInspector] private int totalNumOfItemsRequired;
     [SyncVar(Channel = FishNet.Transporting.Channel.Reliable, ReadPermissions = ReadPermission.Observers, WritePermissions = WritePermission.ServerOnly)]
@@ -192,7 +192,7 @@ public abstract class Structure : Interactable
         structureIsBeingBuilt = status;
     }
 
-    protected abstract void FinishBuildingAction();
+    protected abstract void FinishBuildingAction(Player player);
 
     public IEnumerator UseTool(Player player, ToolType currentlyEquippedToolType)
     {
@@ -275,7 +275,7 @@ public abstract class Structure : Interactable
             {
                 UpdateIsBuiltServerRpc();
                 RadialProgress.enabled = false;
-                FinishBuildingAction();
+                FinishBuildingAction(player);
             }
             yield break;
         }
@@ -377,7 +377,7 @@ public abstract class Structure : Interactable
             UpdateIsBuiltServerRpc();
             RadialProgress.enabled = false;
             ConstructionFinishedText.enabled = true;
-            FinishBuildingAction();
+            FinishBuildingAction(player);
             
             yield return new WaitForSeconds(ACTION_DELAY);
             ConstructionFinishedText.enabled = false;
