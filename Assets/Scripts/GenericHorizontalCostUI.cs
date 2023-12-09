@@ -7,10 +7,11 @@ using UnityEngine.UI;
 
 public class GenericHorizontalCostUI : NetworkBehaviour
 {
-    [SerializeField] RectTransform[] costPositions;
-    [SerializeField] Transform CostTemplate;
-    [SerializeField] Transform CostListContainer;
-    [SerializeField] StructureSO structureSO;    
+    [SerializeField] StructureSO structureSO;
+    // Todo: Paid structures should not need to have these assigned in the editor, how to conditionally remove serialize field from editor?
+    private RectTransform[] costPositions;
+    private Transform CostTemplate;
+    private Transform CostListContainer;
 
     // I think most cases cost count is <= 2
     private Dictionary<Item, int> elementsItemToIdxMapping = new Dictionary<Item, int>(2);
@@ -19,7 +20,13 @@ public class GenericHorizontalCostUI : NetworkBehaviour
 
     private void Start()
     {
-        CostTemplate.gameObject.SetActive(false);
+        if (!structureSO.IsPaid)
+        {
+            costPositions = transform.Find("CostPositions").GetComponentsInChildren<RectTransform>();
+            CostTemplate = transform.Find("CostTemplate");
+            CostListContainer = transform.Find("CostListContainer");
+            CostTemplate.gameObject.SetActive(false);
+        }
         canDisplay(false);
         PopulateDisplay();
         // Remember to call UpdateCostRatio() in the initialization of the gameobject that uses generic horizontal cost UI
@@ -27,21 +34,22 @@ public class GenericHorizontalCostUI : NetworkBehaviour
 
     public void canDisplay(bool ifDisplay)
     {
+        transform.Find("StructureName").gameObject.SetActive(ifDisplay);
+        if (structureSO.IsPaid) { return; }
         foreach (var transform in elementsList)
         {
             transform.gameObject.SetActive(ifDisplay);
         }
-        transform.Find("StructureName").gameObject.SetActive(ifDisplay);
     }
 
-    public bool UIIsEnabled()
-    {
-        if (elementsList.Count > 0)
-        {
-            return elementsList[0].gameObject.activeSelf;
-        }
-        return false;
-    }
+    //public bool UIIsEnabled()
+    //{
+    //    if (elementsList.Count > 0)
+    //    {
+    //        return elementsList[0].gameObject.activeSelf;
+    //    }
+    //    return false;
+    //}
     
     public void UpdateCostRatio(KeyValuePair<Item, ValueTuple<int, int>> newData)
     {
@@ -71,6 +79,8 @@ public class GenericHorizontalCostUI : NetworkBehaviour
     private void PopulateDisplay()
     {
         transform.Find("StructureName").GetComponent<TMP_Text>().text = structureSO.StructureName;
+        if (structureSO.IsPaid) { return; }
+
         int idx = 0;
         foreach (var resource in structureSO.Cost)
         {

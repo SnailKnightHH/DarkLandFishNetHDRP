@@ -10,15 +10,13 @@ using UnityEngine.UI;
 using FishNet.Connection;
 
 
-public class Structure : Interactable
+public abstract class Structure : Interactable
 {
     [SerializeField] private Image RadialProgress;
     [SerializeField] private TMP_Text ConstructionFinishedText;
 
     private float timeTakeToBuildOneitem = 1f;
-
-    // I could have used tags for distinction, but for now the norm is: colliders[0]: collider before completion; colliders[1]: collider after completion.
-    private Collider[] colliders;
+    protected const float ACTION_DELAY = 1.5f;
 
     public bool BuildButtonReleased
     {
@@ -26,7 +24,7 @@ public class Structure : Interactable
     }
 
     [SyncVar(Channel = FishNet.Transporting.Channel.Reliable, ReadPermissions = ReadPermission.Observers, WritePermissions = WritePermission.ServerOnly)]
-    private bool isBuilt;
+    [HideInInspector] private bool isBuilt;
     private bool _isBuilt;
     public bool IsBuilt
     {
@@ -90,6 +88,7 @@ public class Structure : Interactable
     private void RespondToSyncTargetRpc(NetworkConnection connection, string[] serverResourcesItemNames, int[] serverResourcesFilledQuantity, bool structureIsBeingBuilt)
     {
         this.structureIsBeingBuilt = structureIsBeingBuilt;
+        // Paid structures should not have an issue here since resources length is 0
         for (int i = 0; i < serverResourcesItemNames.Length; i++)
         {
             resources.Add(SOManager.Instance.AllItemsNameToItemMapping[serverResourcesItemNames[i]],
@@ -115,14 +114,11 @@ public class Structure : Interactable
         return -1;
     }
 
-    void Start()
+    protected virtual void Start()
     {
         ConstructionFinishedText.enabled = false;
         RadialProgress.enabled = false;
         RadialProgress.fillAmount = 0;
-        colliders = GetComponentsInChildren<Collider>();
-        colliders[0].enabled = true;
-        colliders[1].enabled = false;
     }
 
     [ServerRpc(RequireOwnership = false)]
@@ -196,25 +192,7 @@ public class Structure : Interactable
         structureIsBeingBuilt = status;
     }
 
-    [ObserversRpc]
-    private void UpdateColliderClientRpc(bool isCompleted)
-    {
-        UpdateCollider(isCompleted);
-    }
-
-    [ServerRpc(RequireOwnership = false, RunLocally = true)]
-    private void UpdateColliderServerRpc(bool isCompleted)
-    {
-        UpdateCollider(isCompleted);
-        UpdateColliderClientRpc(isCompleted);
-    }
-
-    private void UpdateCollider(bool isCompleted)
-    {
-        int colliderIdx = isCompleted ? 1 : 0;  // Explicit bool to int conversion
-        colliders[colliderIdx].enabled = true;
-        colliders[1 - colliderIdx].enabled = false;
-    }
+    protected abstract void FinishBuildingAction();
 
     public IEnumerator Build(Player player)
     {
@@ -222,7 +200,7 @@ public class Structure : Interactable
         {
             ConstructionFinishedText.text = "Construction Complete";
             ConstructionFinishedText.enabled = true;            
-            yield return new WaitForSeconds(1.5f);
+            yield return new WaitForSeconds(ACTION_DELAY);
             ConstructionFinishedText.enabled = false;
             yield break;
         }
@@ -231,7 +209,7 @@ public class Structure : Interactable
         {
             ConstructionFinishedText.text = "Structure is being built";
             ConstructionFinishedText.enabled = true;
-            yield return new WaitForSeconds(1.5f);
+            yield return new WaitForSeconds(ACTION_DELAY);
             ConstructionFinishedText.enabled = false;
             yield break;
         }
@@ -257,6 +235,49 @@ public class Structure : Interactable
         }
 
         int totalFilled = totalNumOfItemsAlreadyFilled;
+
+        // Todo: Maybe potentially refactor this? Since right now paid and unpaid is completely separate. Low priority though since it is working fine 
+        if (structureSO.IsPaid)
+        {
+            for (int j = totalFilled; j < totalNumOfItemsRequired; j++)
+            {
+                if (player.GetComponent<NetworkObject>().OwnerId == LocalConnection.ClientId)
+                {
+                    totalFilled++;
+                    bool _;
+                    yield return StartCoroutine(RadialProgressLerp(totalFilled, totalNumOfItemsRequired, (_) => { }));
+                    if (BuildButtonReleased)
+                    {
+                        break;
+                    }
+                    AddToTotalNumOfItemsAlreadyFilledServerRpc(1);
+                }
+            }
+
+            if (IsHost)
+            {
+                UpdateStructureBuildStatusClientRpc(false);
+            }
+            else
+            {
+                UpdateStructureBuildStatusServerRpc(false);
+            }
+
+            player.IsBuilding = false;
+            if (BuildButtonReleased)
+            {
+                RadialProgress.enabled = false;
+                yield break;
+            }
+
+            if (totalFilled == totalNumOfItemsRequired)
+            {
+                UpdateIsBuiltServerRpc();
+                RadialProgress.enabled = false;
+                FinishBuildingAction();
+            }
+            yield break;
+        }
 
         for (int i = 0; i < player.InventoryList.Count; i++)
         {
@@ -355,19 +376,13 @@ public class Structure : Interactable
             UpdateIsBuiltServerRpc();
             RadialProgress.enabled = false;
             ConstructionFinishedText.enabled = true;
-            if (IsServer)
-            {
-                UpdateColliderClientRpc(true);
-            } else
-            {
-                UpdateColliderServerRpc(true);
-            }
+            FinishBuildingAction();
             
-            yield return new WaitForSeconds(1.5f);
+            yield return new WaitForSeconds(ACTION_DELAY);
             ConstructionFinishedText.enabled = false;
         } else
         {
-            yield return new WaitForSeconds(1.5f);
+            yield return new WaitForSeconds(ACTION_DELAY);
             RadialProgress.enabled = false;
         }
     }

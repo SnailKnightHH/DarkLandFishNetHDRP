@@ -64,7 +64,7 @@ public class RandomizedObjectSpawner : NetworkBehaviour
     [SerializeField] private List<GameObject> houses;
     [SerializeField] private List<GameObject> enemies;
 
-    private float airborneEnemySpawnHeightOffset = 10f;
+    private float airborneEnemySpawnHeightOffset = 20f;
 
     public override void OnStartServer()
     {

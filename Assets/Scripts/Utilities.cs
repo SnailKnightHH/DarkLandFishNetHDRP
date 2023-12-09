@@ -28,6 +28,7 @@ public static class Utilities
         }
     }
 
+    // Make sure to place objects/enemies in a place where there is nav mesh 
     public static Vector3 RaycastHitPointPosition(Transform transform, LayerMask walkableLayerMask)
     {
         if (RotaryHeart.Lib.PhysicsExtension.Physics.Raycast(transform.position, -Vector3.up, out RaycastHit hitInfo, Mathf.Infinity, walkableLayerMask, QueryTriggerInteraction.Ignore, RotaryHeart.Lib.PhysicsExtension.PreviewCondition.Both))
