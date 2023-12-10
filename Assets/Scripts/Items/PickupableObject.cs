@@ -10,22 +10,17 @@ public class PickupableObject : Carryable, IThrowable
 {
     [SerializeField] private float throwForce = 30;
     [SerializeField] private Item _item;
-    private int _numOfItem = 1;
 
     [SyncVar(Channel = FishNet.Transporting.Channel.Reliable, ReadPermissions = ReadPermission.Observers, WritePermissions = WritePermission.ServerOnly)]
     [HideInInspector] private bool IsPickedUp;
     public bool isPickedUp => IsPickedUp;
-    public int numOfItem
-    {
-        get
-        {
-            return _numOfItem;
-        }
-        set
-        {
-            _numOfItem = value;
-        }
-    }
+
+    [SyncVar(Channel = FishNet.Transporting.Channel.Reliable, ReadPermissions = ReadPermission.Observers, WritePermissions = WritePermission.ServerOnly)]
+    [HideInInspector] public int NumOfItem = 1;
+
+    [SyncVar(Channel = FishNet.Transporting.Channel.Reliable, ReadPermissions = ReadPermission.Observers, WritePermissions = WritePermission.ServerOnly)]
+    [HideInInspector] private bool showMesh = true;
+    public bool ShowMesh => showMesh;
 
     public Item objectItem
     {
@@ -41,10 +36,29 @@ public class PickupableObject : Carryable, IThrowable
         rb = GetComponent<Rigidbody>();        
     }
 
+    // Todo: what if server disconnects?
+    public override void OnStartClient()
+    {
+        base.OnStartClient();
+        DisableOrEnableMesh(showMesh);
+    }
+
     [ServerRpc(RequireOwnership = false)]
     public void UpdatePickUpStatusServerRpc(bool isPickedUp)
     {
         IsPickedUp = isPickedUp;
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    public void UpdateShowMeshServerRpc(bool state)
+    {
+        showMesh = state;
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    public void UpdateNumberOfItemServerRpc(int num)
+    {
+        NumOfItem = num;
     }
 
     // Parameter needs to be Transform (a reference type)
@@ -91,6 +105,7 @@ public class PickupableObject : Carryable, IThrowable
 
     public virtual void DisableOrEnableMesh(bool state)
     {
+        UpdateShowMeshServerRpc(state);
         GetComponentInChildren<MeshRenderer>().enabled = state;
     }
 
@@ -136,7 +151,7 @@ public class PickupableObject : Carryable, IThrowable
         UpdatePickUpStatusServerRpc(false);
         SetCarryMountTransform(null);
         SetCameraViewTransform(null);
-        numOfItem = numberOfItems;                
+        UpdateNumberOfItemServerRpc(numberOfItems);
         RemoveClientOwnershipServerRpc();
     }
 

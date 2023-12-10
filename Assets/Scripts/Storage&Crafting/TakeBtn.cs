@@ -46,7 +46,7 @@ public class TakeBtn : MonoBehaviour
             {   
                 if (player.isInventorySlotEmpty(pickupIdx)) 
                 {
-                    StorageAndCrafting.Instance.SpawnItem(GetItem().ItemName, pickupIdx);
+                    player.SpawnItem(GetItem().ItemName, 1, pickupIdx);
                 }
                 else 
                 {

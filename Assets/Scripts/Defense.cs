@@ -29,6 +29,7 @@ public class Defense : PickupableObject, ITriggerCollider
 
     public override void DisableOrEnableMesh(bool state)
     {
+        UpdateShowMeshServerRpc(state);
         foreach (MeshRenderer meshRenderer in meshRenders)
         {
             meshRenderer.enabled = state;
@@ -118,7 +119,7 @@ public class Defense : PickupableObject, ITriggerCollider
         UpdatePickUpStatusServerRpc(false);
         SetCarryMountTransform(null);
         SetCameraViewTransform(null);
-        numOfItem = numberOfItems;
+        UpdateNumberOfItemServerRpc(numberOfItems);
         UpdateIsDeployedServerRpc(true);
         RemoveClientOwnershipServerRpc();
         //transform.position = deployPosition;

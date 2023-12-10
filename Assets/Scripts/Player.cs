@@ -456,7 +456,7 @@ public class Player : Character, ITrackable
             if (!isInventorySlotEmpty(i)
                 && inventoryList[i].Item1.GetComponent<PickupableObject>().objectItem.ItemName 
                     == objectTobeHeld.GetComponent<PickupableObject>().objectItem.ItemName
-                && inventoryList[i].Item2 + objectTobeHeld.GetComponent<PickupableObject>().numOfItem <= ITEM_HELD_LIMIT)
+                && inventoryList[i].Item2 + objectTobeHeld.GetComponent<PickupableObject>().NumOfItem <= ITEM_HELD_LIMIT)
             {
                 return i;
             }
@@ -496,7 +496,7 @@ public class Player : Character, ITrackable
         }
 
         GameObject previouslyHeldGO = inventoryList[availableIdx].Item1;
-        inventoryList[availableIdx] = Tuple.Create(objectTobeHeld, objectTobeHeld.GetComponent<PickupableObject>().numOfItem + (isInventorySlotEmpty(availableIdx) ? 0 : inventoryList[availableIdx].Item2));
+        inventoryList[availableIdx] = Tuple.Create(objectTobeHeld, objectTobeHeld.GetComponent<PickupableObject>().NumOfItem + (isInventorySlotEmpty(availableIdx) ? 0 : inventoryList[availableIdx].Item2));
         inventoryList[availableIdx].Item1.GetComponent<PickupableObject>().PickUp(_carryMountPoint, cameraTransform, _defenseCarryMountPoint);
         if (objectTobeHeld.GetComponent<Defense>() != null && inventoryList[availableIdx].Item2 > 1)    // since we spawn additional defenses when we deploy them, we also need to despawn the extras upon pick up
         {
@@ -638,29 +638,28 @@ public class Player : Character, ITrackable
         item.gameObject.GetComponent<PickupableObject>().DisableOrEnableMesh(ifActive);
     }
 
-
-    // Even though there is a SpawnItem() method in StorageAndCrafting, have to create a separate one since StorageAndCrafting does not necessarily have player reference 
-    public void SpawnItem(string itemName, int numOfItem = 1, int availableIdx = -1)
+    public void SpawnItem(string itemName, int NumOfItem = 1, int availableIdx = -1)
     {
-        SpawnItemServerRpc(itemName, numOfItem, availableIdx);
+        SpawnItemServerRpc(itemName, NumOfItem, availableIdx);
     }
 
     [ServerRpc(RequireOwnership = false)]
-    private void SpawnItemServerRpc(string itemName, int numOfItem, int availableIdx, NetworkConnection networkConnection = null)
+    private void SpawnItemServerRpc(string itemName, int NumOfItem, int availableIdx, NetworkConnection networkConnection = null)
     {
         Item item = SOManager.Instance.AllItemsNameToItemMapping[itemName];
         GameObject itemPrefab = SOManager.Instance.ItemPrefabMapping[item];
         GameObject itemGameObject = Instantiate(itemPrefab, transform.position + transform.right * (float)1.5, Quaternion.identity);
+        itemGameObject.GetComponent<PickupableObject>().NumOfItem = NumOfItem;  // we are the server so we don't need to call server rpc to update it
         base.Spawn(itemGameObject, networkConnection);
 
-        EquipClientWithItemTakenOutClientRpc(networkConnection, numOfItem, availableIdx, itemGameObject.GetComponent<NetworkObject>());
+        EquipClientWithItemTakenOutClientRpc(networkConnection, availableIdx, itemGameObject.GetComponent<NetworkObject>());
     }
 
     [TargetRpc]
-    private void EquipClientWithItemTakenOutClientRpc(NetworkConnection conn, int numOfItem, int availableIdx, NetworkObject spawnedItemNetworkObject)
+    private void EquipClientWithItemTakenOutClientRpc(NetworkConnection conn, int availableIdx, NetworkObject spawnedItemNetworkObject)
     {
         GameObject pickUpObject = spawnedItemNetworkObject.gameObject;
-        pickUpObject.GetComponent<PickupableObject>().numOfItem = numOfItem;
+        
         if (availableIdx != -1)
         {
             pickup(pickUpObject, availableIdx);
@@ -829,7 +828,7 @@ public class Player : Character, ITrackable
                     Debug.Log($"Is picked up: {objectToCarry.GetComponent<PickupableObject>().isPickedUp}");
                     if (!objectToCarry.GetComponent<PickupableObject>().isPickedUp)
                     {
-                        PickupPrompt.transform.GetChild(1).GetComponent<TMP_Text>().text = objectToCarry.GetComponent<PickupableObject>().numOfItem.ToString();
+                        PickupPrompt.transform.GetChild(1).GetComponent<TMP_Text>().text = objectToCarry.GetComponent<PickupableObject>().NumOfItem.ToString();
                         PickupPrompt.transform.GetChild(2).GetComponent<TMP_Text>().text = objectToCarry.GetComponent<PickupableObject>().objectItem.ItemName;
                         PickupPrompt.enabled = true;
                     }

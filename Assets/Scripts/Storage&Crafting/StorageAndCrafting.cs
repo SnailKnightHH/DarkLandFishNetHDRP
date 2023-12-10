@@ -170,45 +170,6 @@ public class StorageAndCrafting : Interactable, ITriggerCollider
         ItemChanged?.Invoke(item);
     }
 
-    // There should be a very similar SpawnItem() function in player since sometimes spawn needs to occur when storage.playerReference is null, consider that as well when updating
-    public void SpawnItem(string itemName, int availableIdx = -1)
-    {        
-        SpawnItemServerRpc(itemName, availableIdx);
-    }
-
-    [ServerRpc(RequireOwnership = false)]
-    private void SpawnItemServerRpc(string itemName, int availableIdx, NetworkConnection networkConnection = null)
-    {
-        Item item = SOManager.Instance.AllItemsNameToItemMapping[itemName];
-        GameObject itemPrefab = SOManager.Instance.ItemPrefabMapping[item];
-        GameObject itemGameObject = Instantiate(itemPrefab, transform.position + transform.right * (float)1.5, Quaternion.identity);
-        base.Spawn(itemGameObject, networkConnection);
-
-        EquipClientWithItemTakenOutClientRpc(networkConnection, availableIdx, itemGameObject.GetComponent<NetworkObject>());
-    }
-
-    [TargetRpc]
-    private void EquipClientWithItemTakenOutClientRpc(NetworkConnection conn, int availableIdx, NetworkObject spawnedItemNetworkObject) 
-    {
-        GameObject pickUpObject = spawnedItemNetworkObject.gameObject;
-        if (availableIdx != -1)
-        {
-            playerReference.pickup(pickUpObject, availableIdx);
-        }
-        else
-        {
-            int idx = playerReference.DeterminePickupIdx(pickUpObject);
-            if (idx != -1)
-            {
-                playerReference.pickup(pickUpObject, idx);
-            } else
-            {
-                // Todo: Store in inventory
-            }
-
-        }
-    }
-
     private int craftItemExecutedNumberOfTimes = 0;
 
     public void CraftItem(Item itemCache)  // this method for some reason is getting invoked more than once per button press
