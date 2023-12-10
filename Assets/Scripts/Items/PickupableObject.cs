@@ -94,7 +94,7 @@ public class PickupableObject : Carryable, IThrowable
         GetComponentInChildren<MeshRenderer>().enabled = state;
     }
 
-    [ObserversRpc]
+    [ObserversRpc(BufferLast = true)]
     protected void UpdateRBGravityClientRpc(bool ifUseGravity)
     {
         rb.useGravity = ifUseGravity;

@@ -21,16 +21,13 @@ public class StorageAndCrafting : Interactable, ITriggerCollider
         get; private set;
     }
 
-
-
     /*
      * Documenting all places ItemChanged delegate is invoked:
      * StorageAndCrafting.cs: deposit, take out
      * ItemEntryBtn.cs: craft
      */
-    public Action<Item> ItemChanged;   
+    public Action<Item> ItemChanged;
 
-    // Start is called before the first frame update
     void Awake()
     {
         if (Instance != null && Instance != this)
@@ -45,12 +42,57 @@ public class StorageAndCrafting : Interactable, ITriggerCollider
             {
                 Items.Add(itemType, new Dictionary<Item, int>());
             }
-            foreach (var item in SOManager.Instance.AllItems)
-            {
-                Items[item.ItemType].Add(item, 10); // temp: modify back to 0
-            }
         }
     }
+
+    public override void OnStartServer()
+    {
+        base.OnStartServer();
+        foreach (var item in SOManager.Instance.AllItems)
+        {
+            Items[item.ItemType].Add(item, 10); // temp: modify back to 0
+        }
+    }
+
+    public override void OnStartClient()
+    {
+        if (NetworkManager.IsServer) { return; }
+        base.OnStartClient();
+        SyncItemsDictServerRpc();
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    private void SyncItemsDictServerRpc(NetworkConnection networkConnection = null)
+    {
+        // List guarantees order, dictionary does not (order undefined)
+        List<Dictionary<string, int>> ItemsInServer = new List<Dictionary<string, int>>(Items.Keys.Count);
+
+        foreach (var itemsDict in Items)
+        {
+            Dictionary<string, int> items = new Dictionary<string, int>();
+            foreach (var item in itemsDict.Value)
+            {
+                items.Add(item.Key.ItemName, item.Value);
+            }
+            ItemsInServer.Add(items);
+        }
+        RespondToSyncItemsDictTargetRpc(networkConnection, ItemsInServer);
+    }
+
+    [TargetRpc]
+    private void RespondToSyncItemsDictTargetRpc(NetworkConnection connection, List<Dictionary<string, int>> ItemsInServer)
+    {
+        int idx = 0;
+        foreach (var item in Items)
+        {
+            foreach (var itemInServer in ItemsInServer[idx])
+            {
+                item.Value.Add(SOManager.Instance.AllItemsNameToItemMapping[itemInServer.Key], itemInServer.Value);
+            }
+            idx++;
+        }
+    }
+
 
     public bool DepositItem(Item item, int count)
     {

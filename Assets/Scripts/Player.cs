@@ -632,7 +632,7 @@ public class Player : Character, ITrackable
         SetMeshStatusClientRpc(item, ifActive);        
     }
 
-    [ObserversRpc]
+    [ObserversRpc(BufferLast = true)]
     private void SetMeshStatusClientRpc(NetworkObject item, bool ifActive)
     {
         item.gameObject.GetComponent<PickupableObject>().DisableOrEnableMesh(ifActive);

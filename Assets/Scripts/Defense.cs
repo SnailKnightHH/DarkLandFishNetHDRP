@@ -42,7 +42,7 @@ public class Defense : PickupableObject, ITriggerCollider
         ChangeMaterialObserversRpc(materialIdx);
     }
 
-    [ObserversRpc]
+    [ObserversRpc(BufferLast = true)]
     private void ChangeMaterialObserversRpc(int materialIdx)
     {
         changeMaterialLocal(materialIdx);
@@ -72,7 +72,7 @@ public class Defense : PickupableObject, ITriggerCollider
     }
 
     /// <summary>
-    /// Determine if defense can be deployed and updates mesh accordingly.
+    /// Determine if defense can be deployed and updates mesh accordingly by default.
     /// </summary>
     /// <returns>If the defense can be deployed</returns>
     public bool IfCanDeploy(bool updateMaterial = true)
