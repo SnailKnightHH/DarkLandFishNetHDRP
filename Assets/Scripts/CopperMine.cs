@@ -32,7 +32,7 @@ public class CopperMine : Structure
 
     private IEnumerator DestroyAfterDelay()
     {
-        if (IsServer)
+        if (IsServer || IsHost)
         {
             DisableMeshAndColliderClientRpc();
         } else

@@ -511,7 +511,7 @@ public class Player : Character, ITrackable
         }
         else // Hide object 
         {
-            if (IsServer)
+            if (IsServer || IsHost)
             {
                 SetMeshStatusClientRpc(inventoryList[availableIdx].Item1.gameObject.GetComponent<NetworkObject>(), false);
             }
@@ -598,7 +598,7 @@ public class Player : Character, ITrackable
         if (!isInventorySlotEmpty(_currentlyHeldIdx))
         {
             //inventoryList[_currentlyHeldIdx].Item1.GetComponent<PickupableObject>().DisableOrEnableMesh(false); // client can execute locally to minimize perceived delay
-            if (IsServer)
+            if (IsServer || IsHost)
             {
                 SetMeshStatusClientRpc(inventoryList[_currentlyHeldIdx].Item1.gameObject.GetComponent<NetworkObject>(), false);
             } else
@@ -610,7 +610,7 @@ public class Player : Character, ITrackable
         if (!isInventorySlotEmpty(_currentlyHeldIdx))
         {
             //inventoryList[_currentlyHeldIdx].Item1.GetComponent<PickupableObject>().DisableOrEnableMesh(true); // client can execute locally to minimize perceived delay
-            if (IsServer)
+            if (IsServer || IsHost)
             {
                 SetMeshStatusClientRpc(inventoryList[_currentlyHeldIdx].Item1.gameObject.GetComponent<NetworkObject>(), true);
             }

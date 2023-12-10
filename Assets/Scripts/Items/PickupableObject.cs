@@ -124,7 +124,7 @@ public class PickupableObject : Carryable, IThrowable
 
     public virtual void Dropoff(int numberOfItems)
     {
-        if (IsServer)
+        if (IsServer || IsHost)
         {
             UpdateRBGravityClientRpc(true);
             UpdateIsTriggerClientRpc(false);
@@ -142,7 +142,7 @@ public class PickupableObject : Carryable, IThrowable
 
     public virtual void PickUp(Transform _carryMountPoint, Transform cameraTransform, Transform _defenseCarryMountPoint)
     {
-        if (IsServer)
+        if (IsServer || IsHost)
         {
             UpdateRBGravityClientRpc(false); // Gravity disabled when picked up, otherwise transform is glichy for other clients 
             UpdateIsTriggerClientRpc(true); // player may collider with object otherwise due to syncing delay

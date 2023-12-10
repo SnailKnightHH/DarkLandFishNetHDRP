@@ -31,7 +31,7 @@ public class Bridge : Structure
                 
     protected override void FinishBuildingAction(Player player)
     {
-        if (IsServer)
+        if (IsServer || IsHost)
         {
             UpdateColliderClientRpc(true);
         } else

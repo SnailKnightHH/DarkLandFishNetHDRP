@@ -81,7 +81,7 @@ public class Defense : PickupableObject, ITriggerCollider
         {
             if (updateMaterial)
             {
-                if (IsServer)
+                if (IsServer || IsHost)
                 {
                     ChangeMaterialObserversRpc(1);
                 }
@@ -97,7 +97,7 @@ public class Defense : PickupableObject, ITriggerCollider
         {
             if (updateMaterial)
             {
-                if (IsServer)
+                if (IsServer || IsHost)
                 {
                     ChangeMaterialObserversRpc(2);
                 }
@@ -127,7 +127,7 @@ public class Defense : PickupableObject, ITriggerCollider
 
     public override void PickUp(Transform _carryMountPoint, Transform cameraTransform, Transform _defenseCarryMountPoint)
     {
-        if (IsServer)
+        if (IsServer || IsHost)
         {
             UpdateRBGravityClientRpc(false); // Gravity disabled when picked up, otherwise transform is glichy for other clients 
             UpdateIsTriggerClientRpc(true); // player may collider with object otherwise due to syncing delay
@@ -199,7 +199,7 @@ public class Defense : PickupableObject, ITriggerCollider
     {
         if (!CanDeploy) { return false; }
 
-        if (IsServer)
+        if (IsServer || IsHost)
         {
             ChangeMaterialObserversRpc(3);
         } else

@@ -64,6 +64,7 @@ public abstract class Structure : Interactable
 
     public override void OnStartClient()
     {
+        if (NetworkManager.IsServer) { return; }
         base.OnStartClient();
         _isBuilt = isBuilt;
         SyncResourcesDictAndBuiltStatusAndUIServerRpc();
@@ -220,7 +221,7 @@ public abstract class Structure : Interactable
         {
             UI.UpdateCostRatio(entry);
         }
-        if (IsServer)
+        if (IsServer || IsHost)
         {
             UpdateStructureBuildStatusClientRpc(true);
         } else

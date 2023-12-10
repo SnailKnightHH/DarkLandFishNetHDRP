@@ -18,7 +18,7 @@ public class ObjectSpawner : NetworkBehaviour
         base.OnStartServer();
         enemySpawnPointsParent.SetActive(false);
         //boatPartSpawnPointsParent.SetActive(false);
-        enabled = IsServer;
+        enabled = IsServer || IsHost;
         if (!enabled)
         {
             return;
