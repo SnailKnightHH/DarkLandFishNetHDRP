@@ -50,7 +50,7 @@ public class StorageAndCrafting : Interactable, ITriggerCollider
         base.OnStartServer();
         foreach (var item in SOManager.Instance.AllItems)
         {
-            Items[item.ItemType].Add(item, 10); // temp: modify back to 0
+            Items[item.ItemType].Add(item, 20); // temp: modify back to 0
         }
     }
 

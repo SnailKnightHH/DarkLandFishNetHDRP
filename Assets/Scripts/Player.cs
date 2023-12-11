@@ -443,8 +443,12 @@ public class Player : Character, ITrackable
     /// Behaviour: If player already has object A in inventoryList, then player can pick up ITEM_HELD_LIMIT - (num of A already owned) at this index.
     /// Otherwise, if there is an empty slot, that index will be returned.
     /// </remarks>
-    public int DeterminePickupIdx(GameObject objectTobeHeld)   // Todo: consider case: [5, 0], and you have 6, it needs to be [10, 1]
+    /// <returns>
+    /// Returns [availableIdx, halfOccupiedIdx]. If availableIdx is -1, not pickupable. Otherwise, if halfOccupiedIdx != -1, then both inventory[availableIdx] and inventory[halfOccupiedIdx] will change.
+    /// </returns>
+    public int[] DeterminePickupIdx(GameObject objectTobeHeld)
     {
+        int halfOccupiedIdx = -1;
         int availableIdx = -1;
         for (int i = 0; i < inventoryList.Count; i++)
         {
@@ -455,17 +459,31 @@ public class Player : Character, ITrackable
             }
             if (!isInventorySlotEmpty(i)
                 && inventoryList[i].Item1.GetComponent<PickupableObject>().objectItem.ItemName 
-                    == objectTobeHeld.GetComponent<PickupableObject>().objectItem.ItemName
-                && inventoryList[i].Item2 + objectTobeHeld.GetComponent<PickupableObject>().NumOfItem <= ITEM_HELD_LIMIT)
+                    == objectTobeHeld.GetComponent<PickupableObject>().objectItem.ItemName)
             {
-                return i;
+                if (inventoryList[i].Item2 + objectTobeHeld.GetComponent<PickupableObject>().NumOfItemLocal <= ITEM_HELD_LIMIT)
+                {
+                    return new int[] { i, -1 };
+                } else // consider case: [5 0], and you have 6, it needs to be [10, 1]
+                {
+                    halfOccupiedIdx = i;
+                }
             }
         }
-        return availableIdx;
+        if (halfOccupiedIdx != -1 && availableIdx == -1) { return new int[] {-1, -1}; }  // consider case: [5, 10], and you have 6 -> inventory full
+        if (halfOccupiedIdx != -1 && availableIdx != -1) {
+            // eg. [5, 0], numOfItem = 6, 6 - (10 - 5) = 1
+            return new int[] { availableIdx, halfOccupiedIdx };
+        }
+        return new int[] { availableIdx, -1 };
     }
 
-    public int DeterminePickupIdx(Item objectTobeHeldItem)   
+    /// <summary>
+    /// Method overload for parameter type of Gameobject. For now only used by storage unit take out button.
+    /// </summary>
+    public int[] DeterminePickupIdx(Item objectTobeHeldItem)
     {
+        int halfOccupiedIdx = -1;
         int availableIdx = -1;
         for (int i = 0; i < inventoryList.Count; i++)
         {
@@ -475,28 +493,55 @@ public class Player : Character, ITrackable
                 continue;
             }
             if (!isInventorySlotEmpty(i)
-                && inventoryList[i].Item1.GetComponent<PickupableObject>().objectItem.ItemName == objectTobeHeldItem.ItemName
-                && inventoryList[i].Item2 + 1 <= ITEM_HELD_LIMIT)   // used by take out button
+                && inventoryList[i].Item1.GetComponent<PickupableObject>().objectItem.ItemName
+                    == objectTobeHeldItem.ItemName)
             {
-                return i;
+                if (inventoryList[i].Item2 + 1 <= ITEM_HELD_LIMIT)
+                {
+                    return new int[] { i, -1 };
+                }
+                else 
+                {
+                    halfOccupiedIdx = i;
+                }
             }
         }
-        return availableIdx;
+        if (halfOccupiedIdx != -1 && availableIdx == -1) { return new int[] { -1, -1 }; }  
+        if (halfOccupiedIdx != -1 && availableIdx != -1)
+        {
+            // eg. [5, 0], numOfItem = 6, 6 - (10 - 5) = 1
+            return new int[] { availableIdx, halfOccupiedIdx };
+        }
+        return new int[] { availableIdx, -1 };
     }
 
-    public void pickup(GameObject objectTobeHeld, int availableIdx = -1)
+
+    public void pickup(GameObject objectTobeHeld, int[] availableIdices = null)
     {
         // attach object to mount point and keep reference
         Debug.Log("picking up item");
         if (objectTobeHeld.GetComponent<PickupableObject>().isPickedUp) { return; }
-        if (availableIdx == -1)
+        if (availableIdices == null)
         {
-            availableIdx = DeterminePickupIdx(objectTobeHeld);
-            if (availableIdx == -1) { return; } // no empty space, cannot pickup
+            availableIdices = DeterminePickupIdx(objectTobeHeld);
+            if (availableIdices[0] == -1) { return; } // no empty space, cannot pickup
         }
 
+        Debug.Assert(availableIdices.Length == 2 && availableIdices[0] != -1, "Available index is -1 or method array parameter invalid, cannot pick up.");
+        int availableIdx = availableIdices[0];
+        int halfOccupiedIdx = availableIdices[1];
+
         GameObject previouslyHeldGO = inventoryList[availableIdx].Item1;
-        inventoryList[availableIdx] = Tuple.Create(objectTobeHeld, objectTobeHeld.GetComponent<PickupableObject>().NumOfItem + (isInventorySlotEmpty(availableIdx) ? 0 : inventoryList[availableIdx].Item2));
+
+        if (halfOccupiedIdx != -1)
+        {
+            int newNumOfItem = objectTobeHeld.GetComponent<PickupableObject>().NumOfItemLocal - (ITEM_HELD_LIMIT - inventoryList[halfOccupiedIdx].Item2);
+            // Do not use UpdateInventorySlot() since 1. have direct access to inventoryList, 2: do not have to update UI; Todo: when inventory gets refactored to its own class, point 1 is no longer true
+            inventoryList[halfOccupiedIdx] = Tuple.Create(inventoryList[halfOccupiedIdx].Item1, ITEM_HELD_LIMIT);
+            objectTobeHeld.GetComponent<PickupableObject>().UpdateNumberOfItem(newNumOfItem);
+        }
+
+        inventoryList[availableIdx] = Tuple.Create(objectTobeHeld, objectTobeHeld.GetComponent<PickupableObject>().NumOfItemLocal + (isInventorySlotEmpty(availableIdx) ? 0 : inventoryList[availableIdx].Item2));
         inventoryList[availableIdx].Item1.GetComponent<PickupableObject>().PickUp(_carryMountPoint, cameraTransform, _defenseCarryMountPoint);
         if (objectTobeHeld.GetComponent<Defense>() != null && inventoryList[availableIdx].Item2 > 1)    // since we spawn additional defenses when we deploy them, we also need to despawn the extras upon pick up
         {
@@ -508,6 +553,10 @@ public class Player : Character, ITrackable
         {
             UpdateInventoryUI(inventoryList[availableIdx].Item1.GetComponent<PickupableObject>().objectItem.ItemName,
                 inventoryList[availableIdx].Item2.ToString());
+        } else if(halfOccupiedIdx == _currentlyHeldIdx)
+        {
+            UpdateInventoryUI(inventoryList[halfOccupiedIdx].Item1.GetComponent<PickupableObject>().objectItem.ItemName,
+                inventoryList[halfOccupiedIdx].Item2.ToString());
         }
         else // Hide object 
         {
@@ -638,38 +687,38 @@ public class Player : Character, ITrackable
         item.gameObject.GetComponent<PickupableObject>().DisableOrEnableMesh(ifActive);
     }
 
-    public void SpawnItem(string itemName, int NumOfItem = 1, int availableIdx = -1)
+    public void SpawnItem(string itemName, int NumOfItem = 1, int[] availableIdices = null)
     {
-        SpawnItemServerRpc(itemName, NumOfItem, availableIdx);
+        SpawnItemServerRpc(itemName, NumOfItem, availableIdices);
     }
 
     [ServerRpc(RequireOwnership = false)]
-    private void SpawnItemServerRpc(string itemName, int NumOfItem, int availableIdx, NetworkConnection networkConnection = null)
+    private void SpawnItemServerRpc(string itemName, int NumOfItem, int[] availableIdices, NetworkConnection networkConnection = null)
     {
         Item item = SOManager.Instance.AllItemsNameToItemMapping[itemName];
         GameObject itemPrefab = SOManager.Instance.ItemPrefabMapping[item];
         GameObject itemGameObject = Instantiate(itemPrefab, transform.position + transform.right * (float)1.5, Quaternion.identity);
-        itemGameObject.GetComponent<PickupableObject>().NumOfItem = NumOfItem;  // we are the server so we don't need to call server rpc to update it
+        itemGameObject.GetComponent<PickupableObject>().NumOfItemLocal = NumOfItem;  // we are the server so we don't need to call server rpc to update it
         base.Spawn(itemGameObject, networkConnection);
 
-        EquipClientWithItemTakenOutClientRpc(networkConnection, availableIdx, itemGameObject.GetComponent<NetworkObject>());
+        EquipClientWithItemTakenOutClientRpc(networkConnection, availableIdices, itemGameObject.GetComponent<NetworkObject>());
     }
 
     [TargetRpc]
-    private void EquipClientWithItemTakenOutClientRpc(NetworkConnection conn, int availableIdx, NetworkObject spawnedItemNetworkObject)
+    private void EquipClientWithItemTakenOutClientRpc(NetworkConnection conn, int[] availableIdices, NetworkObject spawnedItemNetworkObject)
     {
         GameObject pickUpObject = spawnedItemNetworkObject.gameObject;
         
-        if (availableIdx != -1)
+        if (availableIdices != null && availableIdices[0] != -1)
         {
-            pickup(pickUpObject, availableIdx);
+            pickup(pickUpObject, availableIdices);
         }
         else
         {
-            int idx = DeterminePickupIdx(pickUpObject);
-            if (idx != -1)
+            int[] idices = DeterminePickupIdx(pickUpObject);
+            if (idices[0] != -1)
             {
-                pickup(pickUpObject, idx);
+                pickup(pickUpObject, idices);
             }
             else
             {
@@ -700,7 +749,7 @@ public class Player : Character, ITrackable
                 {
                     string itemName = inventoryList[_currentlyHeldIdx].Item1.GetComponent<PickupableObject>().objectItem.ItemName;
                     MakeInventorySlotEmpty(CurrentlyHeldIdx);
-                    SpawnItem(itemName, defenseHeldNumber - 1, _currentlyHeldIdx); // create a new one and pick it up
+                    SpawnItem(itemName, defenseHeldNumber - 1, new int[] { _currentlyHeldIdx, -1 }); // create a new one and pick it up
                 } else
                 {
                     UpdateInventoryUI("Fist", "");
@@ -818,7 +867,7 @@ public class Player : Character, ITrackable
 
             if (objectToCarry != null)
             {
-                if (!objectToCarry.GetComponent<PickupableObject>().isPickedUp && DeterminePickupIdx(hitInfo.transform.gameObject) == -1)
+                if (!objectToCarry.GetComponent<PickupableObject>().isPickedUp && DeterminePickupIdx(hitInfo.transform.gameObject)[0] == -1)
                 {
                     InventoryFullPrompt.enabled = true;
                 }
@@ -828,7 +877,7 @@ public class Player : Character, ITrackable
                     Debug.Log($"Is picked up: {objectToCarry.GetComponent<PickupableObject>().isPickedUp}");
                     if (!objectToCarry.GetComponent<PickupableObject>().isPickedUp)
                     {
-                        PickupPrompt.transform.GetChild(1).GetComponent<TMP_Text>().text = objectToCarry.GetComponent<PickupableObject>().NumOfItem.ToString();
+                        PickupPrompt.transform.GetChild(1).GetComponent<TMP_Text>().text = objectToCarry.GetComponent<PickupableObject>().NumOfItemLocal.ToString();
                         PickupPrompt.transform.GetChild(2).GetComponent<TMP_Text>().text = objectToCarry.GetComponent<PickupableObject>().objectItem.ItemName;
                         PickupPrompt.enabled = true;
                     }

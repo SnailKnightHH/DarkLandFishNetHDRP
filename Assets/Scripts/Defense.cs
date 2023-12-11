@@ -119,7 +119,7 @@ public class Defense : PickupableObject, ITriggerCollider
         UpdatePickUpStatusServerRpc(false);
         SetCarryMountTransform(null);
         SetCameraViewTransform(null);
-        UpdateNumberOfItemServerRpc(numberOfItems);
+        UpdateNumberOfItem(numberOfItems);
         UpdateIsDeployedServerRpc(true);
         RemoveClientOwnershipServerRpc();
         //transform.position = deployPosition;
