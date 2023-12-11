@@ -337,6 +337,10 @@ public class Player : Character, ITrackable
 
     private void JumpAndGravity()
     {
+        if ((freezePlayerAndCameraMovement || IsBuilding) && _input.jump) {
+            _input.jump = false;
+            return; 
+        }
         if (Grounded)
         {
             // reset the fall timeout timer
