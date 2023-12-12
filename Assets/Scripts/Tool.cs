@@ -10,7 +10,7 @@ public enum ToolType
     Pickaxe
 }
 
-public abstract class Tool : NetworkBehaviour
+public abstract class Tool : PickupableObject
 {
     public Structure structure
     {
@@ -20,9 +20,12 @@ public abstract class Tool : NetworkBehaviour
 
     public virtual ToolType ToolType { get; }
 
-    public IEnumerator UseTool(Player player)
+    public virtual IEnumerator UseTool(Player player)
     {
-        yield return StartCoroutine(structure.UseTool(player, ToolType));
+        if (structure != null)
+        {
+            yield return StartCoroutine(structure.UseTool(player, ToolType));
+        }
     }
 
 }

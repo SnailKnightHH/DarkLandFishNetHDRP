@@ -169,7 +169,7 @@ public class Player : Character, ITrackable
         }
     }
 
-
+    // Currently used as "isUsingStorage" 
     [HideInInspector] public bool freezePlayerAndCameraMovement = false;
     //[HideInInspector] public Vector3 freezePosition;
     //[HideInInspector] public Vector3 lastCameraRotation;
@@ -785,26 +785,31 @@ public class Player : Character, ITrackable
         }
     }
 
-
+    private bool usingToolCurrently = false;
     private void UseTool()
     {
         if (_input.build
             && !isInventorySlotEmpty(_currentlyHeldIdx)
             && inventoryList[CurrentlyHeldIdx].Item1.GetComponent<Tool>() != null
-            && objectToInteract != null
-            && objectToInteract.GetComponentInParent<Structure>() != null
-            && !IsBuilding)
+            && !IsBuilding
+            && !usingToolCurrently
+            && !freezePlayerAndCameraMovement)
         {
+            usingToolCurrently = true;
             StartCoroutine(UseToolCoroutine());
         }
     }
 
     private IEnumerator UseToolCoroutine()
     {
-        inventoryList[CurrentlyHeldIdx].Item1.GetComponent<Tool>().structure = objectToInteract.GetComponentInParent<Structure>();
+        inventoryList[CurrentlyHeldIdx].Item1.GetComponent<Tool>().structure = objectToInteract == null ? null : objectToInteract.GetComponentInParent<Structure>();
         yield return StartCoroutine(inventoryList[CurrentlyHeldIdx].Item1.GetComponent<Tool>().UseTool(this));
-        inventoryList[CurrentlyHeldIdx].Item1.GetComponent<Tool>().structure.BuildButtonReleased = false;
-        _input.build = false;        
+        if (inventoryList[CurrentlyHeldIdx].Item1.GetComponent<Tool>().structure != null)
+        {
+            inventoryList[CurrentlyHeldIdx].Item1.GetComponent<Tool>().structure.BuildButtonReleased = false;
+        }
+        _input.build = false;
+        usingToolCurrently = false;
     }
 
     public void interact()

@@ -100,7 +100,7 @@ namespace FishNet.Example
                     return "Invalid";
             }
 // Disable default button since we use lobby
-#if false
+#if true
             GUILayout.BeginArea(new Rect(16, 16, 256, 9000));
             Vector2 defaultResolution = new Vector2(1920f, 1080f);
             GUI.matrix = Matrix4x4.TRS(Vector3.zero, Quaternion.identity, new Vector3(Screen.width / defaultResolution.x, Screen.height / defaultResolution.y, 1));

@@ -54,6 +54,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: e3a3a405ab3b1914d8d2843489df109f, type: 2}
   - {fileID: 11400000, guid: bad8e22d0a60b1741ba74fdadc6dfe58, type: 2}
   - {fileID: 11400000, guid: 7743f915ab3ef61419352965c414353b, type: 2}
+  - {fileID: 11400000, guid: 1d7007da924d3344b9d7184ac61e9db1, type: 2}
   AllPrefabsMapping:
   - item: {fileID: 11400000, guid: 619438a2050db784b8e2a582baae2007, type: 2}
     prefab: {fileID: 4026381513511557075, guid: 33faf64cbc686df4fbace0db9dde9c85,
@@ -80,4 +81,7 @@ MonoBehaviour:
     prefab: {fileID: 127374926040355072, guid: 5f879c85118cdf846aa6cfc97fa804af, type: 3}
   - item: {fileID: 11400000, guid: 7743f915ab3ef61419352965c414353b, type: 2}
     prefab: {fileID: 3261819118967202836, guid: c6dc1097cac44d3499aefe5d1f023095,
+      type: 3}
+  - item: {fileID: 11400000, guid: 1d7007da924d3344b9d7184ac61e9db1, type: 2}
+    prefab: {fileID: 6692009766777525745, guid: 33ba56f224ac5fe4cb0ea85906743f0d,
       type: 3}

@@ -20,7 +20,7 @@ public class PickupableObject : Carryable, IThrowable
     /// <summary>
     /// This variable is updated immediately, and should always have the same value as its sync var equivalent.
     /// </summary>
-    public int NumOfItemLocal = 1;
+    [HideInInspector] public int NumOfItemLocal = 1;
 
     [SyncVar(Channel = FishNet.Transporting.Channel.Reliable, ReadPermissions = ReadPermission.Observers, WritePermissions = WritePermission.ServerOnly)]
     [HideInInspector] private bool showMesh = true;
