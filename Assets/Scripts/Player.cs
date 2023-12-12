@@ -10,6 +10,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
 using static EnvironmentalHazardsManager;
+using Unity.VisualScripting;
 
 public class Player : Character, ITrackable
 {
@@ -465,7 +466,7 @@ public class Player : Character, ITrackable
                 && inventoryList[i].Item1.GetComponent<PickupableObject>().objectItem.ItemName 
                     == objectTobeHeld.GetComponent<PickupableObject>().objectItem.ItemName)
             {
-                if (inventoryList[i].Item2 + objectTobeHeld.GetComponent<PickupableObject>().NumOfItemLocal <= ITEM_HELD_LIMIT)
+                if (inventoryList[i].Item2 + objectTobeHeld.GetComponent<PickupableObject>().NumOfItem <= ITEM_HELD_LIMIT)
                 {
                     return new int[] { i, -1 };
                 } else // consider case: [5 0], and you have 6, it needs to be [10, 1]
@@ -520,7 +521,7 @@ public class Player : Character, ITrackable
     }
 
 
-    public void pickup(GameObject objectTobeHeld, int[] availableIdices = null)
+    public void pickup(GameObject objectTobeHeld, int[] availableIdices = null, int NumOfItemOverride = -1)
     {
         // attach object to mount point and keep reference
         Debug.Log("picking up item");
@@ -531,6 +532,11 @@ public class Player : Character, ITrackable
             if (availableIdices[0] == -1) { return; } // no empty space, cannot pickup
         }
 
+        // NumOfItemOverride is for when spawning object, PickupableObject.NumOfItem has to go through server for update. 
+        // By the time pickup method is reached, it's almost always the case that the update has not propogated back through the network yet.
+        // Thus, if spawn method passes in NumOfItemOverride, use that instead.
+        int NumOfItem = NumOfItemOverride == -1 ? objectTobeHeld.GetComponent<PickupableObject>().NumOfItem : NumOfItemOverride;
+
         Debug.Assert(availableIdices.Length == 2 && availableIdices[0] != -1, "Available index is -1 or method array parameter invalid, cannot pick up.");
         int availableIdx = availableIdices[0];
         int halfOccupiedIdx = availableIdices[1];
@@ -539,13 +545,13 @@ public class Player : Character, ITrackable
 
         if (halfOccupiedIdx != -1)
         {
-            int newNumOfItem = objectTobeHeld.GetComponent<PickupableObject>().NumOfItemLocal - (ITEM_HELD_LIMIT - inventoryList[halfOccupiedIdx].Item2);
+            int newNumOfItem = NumOfItem - (ITEM_HELD_LIMIT - inventoryList[halfOccupiedIdx].Item2);
             // Do not use UpdateInventorySlot() since 1. have direct access to inventoryList, 2: do not have to update UI; Todo: when inventory gets refactored to its own class, point 1 is no longer true
             inventoryList[halfOccupiedIdx] = Tuple.Create(inventoryList[halfOccupiedIdx].Item1, ITEM_HELD_LIMIT);
-            objectTobeHeld.GetComponent<PickupableObject>().UpdateNumberOfItem(newNumOfItem);
+            objectTobeHeld.GetComponent<PickupableObject>().UpdateNumberOfItemServerRpc(newNumOfItem);
         }
 
-        inventoryList[availableIdx] = Tuple.Create(objectTobeHeld, objectTobeHeld.GetComponent<PickupableObject>().NumOfItemLocal + (isInventorySlotEmpty(availableIdx) ? 0 : inventoryList[availableIdx].Item2));
+        inventoryList[availableIdx] = Tuple.Create(objectTobeHeld, NumOfItem + (isInventorySlotEmpty(availableIdx) ? 0 : inventoryList[availableIdx].Item2));
         inventoryList[availableIdx].Item1.GetComponent<PickupableObject>().PickUp(_carryMountPoint, cameraTransform, _defenseCarryMountPoint);
         if (objectTobeHeld.GetComponent<Defense>() != null && inventoryList[availableIdx].Item2 > 1)    // since we spawn additional defenses when we deploy them, we also need to despawn the extras upon pick up
         {
@@ -702,27 +708,27 @@ public class Player : Character, ITrackable
         Item item = SOManager.Instance.AllItemsNameToItemMapping[itemName];
         GameObject itemPrefab = SOManager.Instance.ItemPrefabMapping[item];
         GameObject itemGameObject = Instantiate(itemPrefab, transform.position + transform.right * (float)1.5, Quaternion.identity);
-        itemGameObject.GetComponent<PickupableObject>().NumOfItemLocal = NumOfItem;  // we are the server so we don't need to call server rpc to update it
+        itemGameObject.GetComponent<PickupableObject>().UpdateNumberOfItemServerRpc(NumOfItem);
         base.Spawn(itemGameObject, networkConnection);
 
-        EquipClientWithItemTakenOutClientRpc(networkConnection, availableIdices, itemGameObject.GetComponent<NetworkObject>());
+        EquipClientWithItemTakenOutClientRpc(networkConnection, availableIdices, NumOfItem, itemGameObject.GetComponent<NetworkObject>());
     }
 
     [TargetRpc]
-    private void EquipClientWithItemTakenOutClientRpc(NetworkConnection conn, int[] availableIdices, NetworkObject spawnedItemNetworkObject)
+    private void EquipClientWithItemTakenOutClientRpc(NetworkConnection conn, int[] availableIdices, int NumOfItemOverride, NetworkObject spawnedItemNetworkObject)
     {
         GameObject pickUpObject = spawnedItemNetworkObject.gameObject;
         
         if (availableIdices != null && availableIdices[0] != -1)
         {
-            pickup(pickUpObject, availableIdices);
+            pickup(pickUpObject, availableIdices, NumOfItemOverride);
         }
         else
         {
             int[] idices = DeterminePickupIdx(pickUpObject);
             if (idices[0] != -1)
             {
-                pickup(pickUpObject, idices);
+                pickup(pickUpObject, idices, NumOfItemOverride);
             }
             else
             {
@@ -886,7 +892,7 @@ public class Player : Character, ITrackable
                     Debug.Log($"Is picked up: {objectToCarry.GetComponent<PickupableObject>().isPickedUp}");
                     if (!objectToCarry.GetComponent<PickupableObject>().isPickedUp)
                     {
-                        PickupPrompt.transform.GetChild(1).GetComponent<TMP_Text>().text = objectToCarry.GetComponent<PickupableObject>().NumOfItemLocal.ToString();
+                        PickupPrompt.transform.GetChild(1).GetComponent<TMP_Text>().text = objectToCarry.GetComponent<PickupableObject>().NumOfItem.ToString();
                         PickupPrompt.transform.GetChild(2).GetComponent<TMP_Text>().text = objectToCarry.GetComponent<PickupableObject>().objectItem.ItemName;
                         PickupPrompt.enabled = true;
                     }

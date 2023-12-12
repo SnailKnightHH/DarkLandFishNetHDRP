@@ -16,11 +16,7 @@ public class PickupableObject : Carryable, IThrowable
     public bool isPickedUp => IsPickedUp;
 
     [SyncVar(Channel = FishNet.Transporting.Channel.Reliable, ReadPermissions = ReadPermission.Observers, WritePermissions = WritePermission.ServerOnly)]
-    [HideInInspector] private int NumOfItem = 1;
-    /// <summary>
-    /// This variable is updated immediately, and should always have the same value as its sync var equivalent.
-    /// </summary>
-    [HideInInspector] public int NumOfItemLocal = 1;
+    [HideInInspector] public int NumOfItem = 1;
 
     [SyncVar(Channel = FishNet.Transporting.Channel.Reliable, ReadPermissions = ReadPermission.Observers, WritePermissions = WritePermission.ServerOnly)]
     [HideInInspector] private bool showMesh = true;
@@ -38,7 +34,6 @@ public class PickupableObject : Carryable, IThrowable
     {
         base.OnStartNetwork();
         rb = GetComponent<Rigidbody>();
-        NumOfItemLocal = NumOfItem;
     }
 
     // Todo: what if server disconnects?
@@ -60,14 +55,8 @@ public class PickupableObject : Carryable, IThrowable
         showMesh = state;
     }
 
-    public void UpdateNumberOfItem(int num)
-    {
-        NumOfItemLocal = num;
-        UpdateNumberOfItemServerRpc(num);
-    }
-
     [ServerRpc(RequireOwnership = false)]
-    private void UpdateNumberOfItemServerRpc(int num)
+    public void UpdateNumberOfItemServerRpc(int num)
     {
         NumOfItem = num;
     }
@@ -162,7 +151,7 @@ public class PickupableObject : Carryable, IThrowable
         UpdatePickUpStatusServerRpc(false);
         SetCarryMountTransform(null);
         SetCameraViewTransform(null);
-        UpdateNumberOfItem(numberOfItems);
+        UpdateNumberOfItemServerRpc(numberOfItems);
         RemoveClientOwnershipServerRpc();
     }
 
