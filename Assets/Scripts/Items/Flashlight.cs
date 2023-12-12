@@ -16,4 +16,11 @@ public class Flashlight : Tool
         light.enabled = !light.enabled;
         yield return null;
     }
+
+    public override void DisableOrEnableMesh(bool state)
+    {
+        UpdateShowMeshServerRpc(state);
+        pickupableBaseClassmeshRenderer.enabled = state;
+        light.enabled = false;
+    }
 }

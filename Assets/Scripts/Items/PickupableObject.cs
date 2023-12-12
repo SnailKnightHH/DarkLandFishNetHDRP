@@ -30,10 +30,15 @@ public class PickupableObject : Carryable, IThrowable
     protected Transform followCameraViewTransform;   
     protected Rigidbody rb;
 
+    protected MeshRenderer pickupableBaseClassmeshRenderer;
+    protected Collider pickupableBaseClasscollider;
+
     public override void OnStartNetwork()
     {
         base.OnStartNetwork();
         rb = GetComponent<Rigidbody>();
+        pickupableBaseClassmeshRenderer = GetComponentInChildren<MeshRenderer>();
+        pickupableBaseClasscollider = GetComponentInChildren<Collider>();
     }
 
     // Todo: what if server disconnects?
@@ -106,7 +111,7 @@ public class PickupableObject : Carryable, IThrowable
     public virtual void DisableOrEnableMesh(bool state)
     {
         UpdateShowMeshServerRpc(state);
-        GetComponentInChildren<MeshRenderer>().enabled = state;
+        pickupableBaseClassmeshRenderer.enabled = state;
     }
 
     [ObserversRpc(BufferLast = true)]
@@ -127,13 +132,13 @@ public class PickupableObject : Carryable, IThrowable
     [ObserversRpc]
     protected void UpdateIsTriggerClientRpc(bool isTrigger)
     {
-        GetComponentInChildren<Collider>().isTrigger = isTrigger;
+        pickupableBaseClasscollider.isTrigger = isTrigger;
     }
 
     [ServerRpc(RequireOwnership = false, RunLocally = true)]
     protected void UpdateIsTriggerServerRpc(bool isTrigger)
     {
-        GetComponentInChildren<Collider>().isTrigger = isTrigger;
+        pickupableBaseClasscollider.isTrigger = isTrigger;
         UpdateIsTriggerClientRpc(isTrigger);
     }
 
