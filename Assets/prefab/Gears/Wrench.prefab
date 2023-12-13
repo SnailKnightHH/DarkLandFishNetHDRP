@@ -161,7 +161,6 @@ MonoBehaviour:
   _item: {fileID: 11400000, guid: e3a3a405ab3b1914d8d2843489df109f, type: 2}
   IsPickedUp: 0
   NumOfItem: 1
-  NumOfItemLocal: 1
   showMesh: 1
 --- !u!54 &-3256300639302375171
 Rigidbody:
@@ -218,9 +217,9 @@ MonoBehaviour:
   _isNetworked: 1
   _isGlobal: 0
   _initializeOrder: 0
-  _defaultDespawnType: 0
+  _defaultDespawnType: 1
   NetworkObserver: {fileID: 0}
-  <PrefabId>k__BackingField: 0
+  <PrefabId>k__BackingField: 4
   <SpawnableCollectionId>k__BackingField: 0
   _scenePathHash: 0
   <SceneId>k__BackingField: 0

@@ -423,14 +423,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 95c1e5e1caf9c6c4f9364cceb41d3c42, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _componentIndexCache: 255
+  _componentIndexCache: 0
   _addedNetworkObject: {fileID: 5194672507234717505}
-  _networkObjectCache: {fileID: 0}
+  _networkObjectCache: {fileID: 5194672507234717505}
   throwForce: 30
   _item: {fileID: 11400000, guid: 1d7007da924d3344b9d7184ac61e9db1, type: 2}
   IsPickedUp: 0
   NumOfItem: 1
-  NumOfItemLocal: 1
   showMesh: 1
 --- !u!114 &5194672507234717505
 MonoBehaviour:
@@ -448,7 +447,7 @@ MonoBehaviour:
   <ComponentIndex>k__BackingField: 0
   <PredictedSpawn>k__BackingField: {fileID: 0}
   _networkBehaviours:
-  - {fileID: 0}
+  - {fileID: 1757050549505096651}
   - {fileID: 4986930973517819677}
   <ParentNetworkObject>k__BackingField: {fileID: 0}
   <ChildNetworkObjects>k__BackingField: []
@@ -459,7 +458,7 @@ MonoBehaviour:
   _isNetworked: 1
   _isGlobal: 0
   _initializeOrder: 0
-  _defaultDespawnType: 0
+  _defaultDespawnType: 1
   NetworkObserver: {fileID: 0}
   <PrefabId>k__BackingField: 11
   <SpawnableCollectionId>k__BackingField: 0
