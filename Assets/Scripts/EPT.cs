@@ -91,8 +91,7 @@ public class EPT : Defense
     {
         if (lockedEnemy != null)
         {
-            // Get the position of the target but with the same Y-coordinate as this GameObject
-            Vector3 targetPositionFlat = new Vector3(lockedEnemy.transform.position.x, MeshTransform.position.y, lockedEnemy.transform.position.z);
+            Vector3 targetPositionFlat = new Vector3(lockedEnemy.transform.position.x, lockedEnemy.transform.position.x, lockedEnemy.transform.position.z);
 
             // Calculate the direction from this GameObject to the modified target position
             Vector3 direction = (targetPositionFlat - MeshTransform.position).normalized;

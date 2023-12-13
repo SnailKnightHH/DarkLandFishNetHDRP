@@ -166,6 +166,7 @@ public class Defense : PickupableObject, ITriggerCollider
         if (!isDeployed && initiatingGameObject.name == "Mesh" && other.tag != Utilities.IGNORED_BY_TRIGGER_COLLIDER) // Todo: fixed string, not robust?
         {
             numOfObjectsInMeshTriggerCollider--;
+            if (numOfObjectsInMeshTriggerCollider < 0) { numOfObjectsInMeshTriggerCollider = 0; }
             CanDeploy = IfCanDeploy();
         }
     }
