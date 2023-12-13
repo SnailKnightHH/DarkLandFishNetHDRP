@@ -5,9 +5,12 @@ using UnityEngine;
 public class Flashlight : Tool
 {
     private Light light;
-    void Start()
+
+    public override void OnStartNetwork()
     {
+        base.OnStartNetwork();
         light = GetComponentInChildren<Light>();
+        light.enabled = false;
     }
 
 

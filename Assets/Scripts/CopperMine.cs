@@ -11,7 +11,7 @@ public class CopperMine : Structure
 
     protected override void FinishBuildingAction(Player player)
     {
-        player.SpawnItem(structureSO.ItemName, NumOfItem: structureSO.totalNumOfRequiredItems);
+        player.SpawnItem(structureSO.ItemName, player.CarryMountPoint.position, player.cameraTransform.rotation, NumOfItem: structureSO.totalNumOfRequiredItems);
         StartCoroutine(DestroyAfterDelay());
     }
 

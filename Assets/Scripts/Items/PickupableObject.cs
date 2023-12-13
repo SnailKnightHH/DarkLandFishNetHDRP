@@ -160,7 +160,7 @@ public class PickupableObject : Carryable, IThrowable
         RemoveClientOwnershipServerRpc();
     }
 
-    public virtual void PickUp(Transform _carryMountPoint, Transform cameraTransform, Transform _defenseCarryMountPoint)
+    public virtual void PickUp(Transform carryMountPoint, Transform cameraTransform, Transform defenseCarryMountPoint)
     {
         if (IsServer || IsHost)
         {
@@ -173,7 +173,7 @@ public class PickupableObject : Carryable, IThrowable
             UpdateIsTriggerServerRpc(true);
         }
         ChangeObjectOwnershipServerRpc();    // so spawned objects can follow player 
-        SetCarryMountTransform(_carryMountPoint);
+        SetCarryMountTransform(carryMountPoint);
         SetCameraViewTransform(cameraTransform);
         UpdatePickUpStatusServerRpc(true);
     }

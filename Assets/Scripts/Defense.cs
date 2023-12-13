@@ -126,7 +126,7 @@ public class Defense : PickupableObject, ITriggerCollider
         transform.rotation = deployRotation;
     }
 
-    public override void PickUp(Transform _carryMountPoint, Transform cameraTransform, Transform _defenseCarryMountPoint)
+    public override void PickUp(Transform carryMountPoint, Transform cameraTransform, Transform defenseCarryMountPoint)
     {
         if (IsServer || IsHost)
         {
@@ -139,7 +139,7 @@ public class Defense : PickupableObject, ITriggerCollider
             UpdateIsTriggerServerRpc(true);
         }
         ChangeObjectOwnershipServerRpc();    // so spawned objects can follow player 
-        SetCarryMountTransform(_defenseCarryMountPoint);
+        SetCarryMountTransform(defenseCarryMountPoint);
         UpdateIsDeployedServerRpc(false);
         CanDeploy = IfCanDeploy();
         UpdatePickUpStatusServerRpc(true);

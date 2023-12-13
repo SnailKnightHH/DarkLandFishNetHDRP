@@ -32,7 +32,7 @@ public class Player : Character, ITrackable
     //public GameObject objectHeld { get; private set; }    
     [SerializeField] private Transform _carryMountPoint;
     [SerializeField] private Transform _defenseCarryMountPoint;
-    public Transform carryMountPoint { get { return _carryMountPoint; } }
+    public Transform CarryMountPoint { get { return _carryMountPoint; } }
     [SerializeField] private float sphereColliderRadius = 1f;
     
     private PlayerWeaponContext weaponContext;
@@ -697,21 +697,24 @@ public class Player : Character, ITrackable
         item.gameObject.GetComponent<PickupableObject>().DisableOrEnableMesh(ifActive);
     }
 
-    public void SpawnItem(string itemName, int NumOfItem = 1, int[] availableIdices = null)
+    public void SpawnItem(string itemName, Vector3 spawnPosition, Quaternion spawnRotation, int NumOfItem = 1, int[] availableIdices = null)
     {
-        SpawnItemServerRpc(itemName, NumOfItem, availableIdices);
+        SpawnItemServerRpc(itemName, NumOfItem, availableIdices, spawnPosition, spawnRotation);
     }
 
     [ServerRpc(RequireOwnership = false)]
-    private void SpawnItemServerRpc(string itemName, int NumOfItem, int[] availableIdices, NetworkConnection networkConnection = null)
+    private void SpawnItemServerRpc(string itemName, int NumOfItem, int[] availableIdices, Vector3 spawnPosition, Quaternion spawnRotation, NetworkConnection networkConnection = null)
     {
         Item item = SOManager.Instance.AllItemsNameToItemMapping[itemName];
         GameObject itemPrefab = SOManager.Instance.ItemPrefabMapping[item];
-        GameObject itemGameObject = Instantiate(itemPrefab, transform.position + transform.right * (float)1.5, Quaternion.identity);
-        itemGameObject.GetComponent<PickupableObject>().UpdateNumberOfItemServerRpc(NumOfItem);
-        base.Spawn(itemGameObject, networkConnection);
 
-        EquipClientWithItemTakenOutClientRpc(networkConnection, availableIdices, NumOfItem, itemGameObject.GetComponent<NetworkObject>());
+        Debug.Assert(NetworkManager.ObjectPool != null, "Object pool is null.");
+        NetworkObject spawnedNetworkObject = NetworkManager.ObjectPool.RetrieveObject(itemPrefab.GetComponent<NetworkObject>().PrefabId, itemPrefab.GetComponent<NetworkObject>().SpawnableCollectionId, spawnPosition, spawnRotation, IsServer);
+        spawnedNetworkObject.transform.root.GetComponent<PickupableObject>().UpdateNumberOfItemServerRpc(NumOfItem);
+        base.Spawn(spawnedNetworkObject, networkConnection);
+        // Todo: there is still a slight issue where spawned item will jiggle by a very small magnitude, reason unknown yet
+
+        EquipClientWithItemTakenOutClientRpc(networkConnection, availableIdices, NumOfItem, spawnedNetworkObject);
     }
 
     [TargetRpc]
@@ -759,7 +762,7 @@ public class Player : Character, ITrackable
                 {
                     string itemName = inventoryList[_currentlyHeldIdx].Item1.GetComponent<PickupableObject>().objectItem.ItemName;
                     MakeInventorySlotEmpty(CurrentlyHeldIdx);
-                    SpawnItem(itemName, defenseHeldNumber - 1, new int[] { _currentlyHeldIdx, -1 }); // create a new one and pick it up
+                    SpawnItem(itemName, _carryMountPoint.position, cameraTransform.rotation, defenseHeldNumber - 1, new int[] { _currentlyHeldIdx, -1 }); // create a new one and pick it up
                 } else
                 {
                     UpdateInventoryUI("Fist", "");

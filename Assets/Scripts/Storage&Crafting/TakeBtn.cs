@@ -47,7 +47,7 @@ public class TakeBtn : MonoBehaviour
             {   
                 if (player.isInventorySlotEmpty(pickupIdices[0])) 
                 {
-                    player.SpawnItem(GetItem().ItemName, 1, pickupIdices);
+                    player.SpawnItem(GetItem().ItemName, player.CarryMountPoint.position, player.cameraTransform.rotation, 1, pickupIdices);
                 }
                 else 
                 {

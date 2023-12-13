@@ -23,8 +23,7 @@ public static class Utilities
         if (RotaryHeart.Lib.PhysicsExtension.Physics.Raycast(transform.position, -Vector3.up, out RaycastHit hitInfo, Mathf.Infinity, walkableLayerMask, QueryTriggerInteraction.Ignore, RotaryHeart.Lib.PhysicsExtension.PreviewCondition.Both))
         {
             Quaternion rotationBasedOnSurface = Quaternion.FromToRotation(Vector3.up, hitInfo.normal);
-            transform.rotation = Quaternion.Euler(rotationBasedOnSurface.eulerAngles.x, transform.eulerAngles.y, rotationBasedOnSurface.eulerAngles.z);
-            transform.position = hitInfo.point;
+            transform.SetPositionAndRotation(hitInfo.point, Quaternion.Euler(rotationBasedOnSurface.eulerAngles.x, transform.eulerAngles.y, rotationBasedOnSurface.eulerAngles.z));
         }
     }
 
