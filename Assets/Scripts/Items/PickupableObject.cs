@@ -33,10 +33,13 @@ public class PickupableObject : Carryable, IThrowable
     protected MeshRenderer pickupableBaseClassmeshRenderer;
     protected Collider pickupableBaseClasscollider;
 
+    protected AudioSource audioSource;
+
     public override void OnStartNetwork()
     {
         base.OnStartNetwork();
         rb = GetComponent<Rigidbody>();
+        audioSource = GetComponent<AudioSource>();
         pickupableBaseClassmeshRenderer = GetComponentInChildren<MeshRenderer>();
         pickupableBaseClasscollider = GetComponentInChildren<Collider>();
     }

@@ -27,6 +27,9 @@ namespace StarterAssets
         public bool cursorInputForLook = true;
 
 #if ENABLE_INPUT_SYSTEM
+
+        public Action<bool, bool> NetworkAudioWalkRunAction;
+
         public void OnMove(InputValue value)
         {
             MoveInput(value.Get<Vector2>());
@@ -80,6 +83,7 @@ namespace StarterAssets
         public void MoveInput(Vector2 newMoveDirection)
         {
             move = newMoveDirection;
+            NetworkAudioWalkRunAction?.Invoke(move != Vector2.zero, sprint);
         }
 
         public void LookInput(Vector2 newLookDirection)
@@ -95,6 +99,7 @@ namespace StarterAssets
         public void SprintInput(bool newSprintState)
         {
             sprint = newSprintState;
+            NetworkAudioWalkRunAction?.Invoke(move != Vector2.zero, sprint);
         }
 
         public void InteractInput(bool newInteractState)

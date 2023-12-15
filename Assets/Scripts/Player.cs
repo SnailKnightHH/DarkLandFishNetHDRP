@@ -11,6 +11,9 @@ using UnityEngine.InputSystem;
 using UnityEngine.UI;
 using static EnvironmentalHazardsManager;
 using Unity.VisualScripting;
+using UnityEngine.Windows;
+using static AudioManager;
+using UnityEditor.PackageManager;
 
 public class Player : Character, ITrackable
 {
@@ -78,6 +81,8 @@ public class Player : Character, ITrackable
     public bool Grabbed;
    
     protected override int Damage { get => 20; } // not used for now, since player's damage is their weapons
+
+    private AudioSource _audioSource;
 
     [Header("Player")]
     [Tooltip("Sprint speed bonus of the character in m/s")]
@@ -154,6 +159,11 @@ public class Player : Character, ITrackable
         Debug.Log("isOwner = " + base.Owner.IsLocalClient);
         //If this is not the owner, turn off player inputs
         if (!base.Owner.IsLocalClient) gameObject.GetComponent<PlayerInput>().enabled = false;
+        if (base.Owner.IsLocalClient)
+        {
+            cameraTransform.AddComponent<AudioListener>();
+            _audioSource = GetComponentInChildren<AudioSource>();
+        }
         else
         {
             Debug.Log("Looking for spawnPoint... ");
@@ -222,6 +232,8 @@ public class Player : Character, ITrackable
             Tuple.Create<GameObject, int>(null, 0) };
         Keyboard.current.MakeCurrent();
         IsBuilding = false;
+        _input.NetworkAudioWalkRunAction += NetworkAudioWalkRunDelegate;
+        myClientId = NetworkManager.ClientManager.Connection.ClientId;
     }
 
     private void Update()
@@ -231,11 +243,11 @@ public class Player : Character, ITrackable
         GroundedCheck();
         Move();
         interact();
-        Use();
+        PerformAction();
         UseTool();
         //ThrowItem();
-        ItemSwitch();        
-        //Debug.Log("Camera forward: " + cameraTransform.forward);
+        ItemSwitch();
+        Untrap();
     }
 
     private void LateUpdate()
@@ -252,6 +264,23 @@ public class Player : Character, ITrackable
         //Gizmos.DrawLine(eyeTransform.position, eyeTransform.position + transform.forward * playerInteractDistance);
         //Gizmos.DrawWireSphere(eyeTransform.position, sphereColliderRadius);
         //Gizmos.DrawWireMesh(eyeTransform.position, Quaternion.identity);
+    }
+
+    private int myClientId;
+
+    private void NetworkAudioWalkRunDelegate(bool isWalking, bool isSprinting)
+    {
+        if (isWalking && isSprinting)
+        {
+            AudioManager.Instance.PlayAudioContinuousNetwork(NetworkObject, SoundName.Run, true, myClientId);
+        } else if (isWalking)
+        {
+            AudioManager.Instance.PlayAudioContinuousNetwork(NetworkObject, SoundName.Walk, true, myClientId);
+        } else
+        {
+            AudioManager.Instance.PlayAudioContinuousNetwork(NetworkObject, SoundName.Walk, false, myClientId);
+            AudioManager.Instance.PlayAudioContinuousNetwork(NetworkObject, SoundName.Run, false, myClientId);
+        }
     }
 
     private void GroundedCheck()
@@ -323,7 +352,15 @@ public class Player : Character, ITrackable
         {
             // move
             inputDirection = transform.right * _input.move.x + transform.forward * _input.move.y;
-        }
+            if (_input.sprint)
+            {
+                AudioManager.Instance.PlayAudioContinuousLocal(_audioSource, SoundName.Run, NetworkManager.ClientManager.Connection.ClientId);
+            }
+            else
+            {
+                AudioManager.Instance.PlayAudioContinuousLocal(_audioSource, SoundName.Walk, NetworkManager.ClientManager.Connection.ClientId);
+            }
+        } 
 
         // move the player
         if (!freezePlayerAndCameraMovement && !IsBuilding)
@@ -375,6 +412,10 @@ public class Player : Character, ITrackable
             if (_fallTimeoutDelta >= 0.0f)
             {
                 _fallTimeoutDelta -= Time.deltaTime;
+            }
+            if (_input.jump)
+            {
+                AudioManager.Instance.PlayAudioDiscrete(NetworkObject, AudioManager.SoundName.Jump);
             }
 
             // if we are not grounded, do not jump
@@ -741,7 +782,7 @@ public class Player : Character, ITrackable
         }
     }
 
-    public void Use()
+    private void PerformAction()
     {        
         if (_input.attack)
         {
@@ -774,6 +815,19 @@ public class Player : Character, ITrackable
             
             Debug.Assert(weaponContext.HasWeapon(), "Tries to attack but has no weapon");
             weaponContext.WeaponAttack();
+        }
+    }
+
+    public Defense Trap
+    {
+        get; set;
+    }
+
+    private void Untrap()
+    {
+        if (_input.build && Trap != null)
+        {
+
         }
     }
 
