@@ -31,7 +31,9 @@ public class PistalBullet : NetworkBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
+#if UNITY_EDITOR
         Debug.Log("Pistal bullet hit: " + other.name);
+#endif
         if (other.GetComponent<Enemy>() != null)
         {
             other.GetComponent<Enemy>().ReceiveDamage(damage);

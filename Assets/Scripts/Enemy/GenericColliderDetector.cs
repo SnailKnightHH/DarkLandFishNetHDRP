@@ -45,16 +45,20 @@ public class GenericColliderDetector<T> : ITriggerCollider
     public virtual void onEnterDetectionZone(Collider other, GameObject initiatingGameObject)
     {
         if (other.gameObject.GetComponentInParent<T>() != null)
-        {            
+        {
+#if UNITY_EDITOR
             Debug.Log("entered detection zone");
+#endif
             GOList.Add(other.transform.root.gameObject);
         }
     }
     public virtual void onExitDetectionZone(Collider other, GameObject initiatingGameObject)
     {
         if (other.gameObject.GetComponentInParent<T>() != null)
-        {            
+        {
+#if UNITY_EDITOR
             Debug.Log("left detection zone");
+#endif
             GOList.Remove(other.transform.root.gameObject);
             if (lockedTarget != null // This can be executed multiple times since player mesh, player face direction, player root etc all satisfis the outer if
                 && lockedTarget.GetComponent<NetworkObject>().ObjectId == other.transform.root.GetComponent<NetworkObject>().ObjectId)

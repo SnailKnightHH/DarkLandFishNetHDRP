@@ -69,7 +69,9 @@ public abstract class Enemy : Character, ITriggerCollider, ITrackable
 
     private IEnumerator baseAttack(Player player)
     {
+#if UNITY_EDITOR
         Debug.Log(EnemyType + " attacked");
+#endif
         if (player != null)
         {
             isAttacking = true;
@@ -82,7 +84,9 @@ public abstract class Enemy : Character, ITriggerCollider, ITrackable
     // potential for template method
     protected override void Die()
     {
+#if UNITY_EDITOR
         Debug.Log("Enemy killed");
+#endif
         base.Despawn();
     }
 

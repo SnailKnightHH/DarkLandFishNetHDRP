@@ -41,7 +41,9 @@ public class LobbyManager : MonoBehaviour
 
             AuthenticationService.Instance.SignedIn += () =>
             {
+#if UNITY_EDITOR
                 Debug.Log("Signed in " + AuthenticationService.Instance.PlayerId);
+#endif
             };
             await AuthenticationService.Instance.SignInAnonymouslyAsync();
         }
@@ -100,8 +102,11 @@ public class LobbyManager : MonoBehaviour
             Lobby lobby = await LobbyService.Instance.CreateLobbyAsync(lobbyName, maxPlayers, options);
             StartCoroutine(HeartBeatLobbyCoroutine(lobby.Id, 15));
             _joinedLobby = lobby;
+#if UNITY_EDITOR
             Debug.Log("Lobby successfully created with name and id: " + lobby.Name + " " + lobby.Id);
-        } catch (LobbyServiceException e)
+#endif
+        }
+        catch (LobbyServiceException e)
         {
             Debug.Log(e);
         }        
@@ -122,7 +127,9 @@ public class LobbyManager : MonoBehaviour
     {
         if (_joinedLobby == null)
         {
+#if UNITY_EDITOR
             Debug.Log("Player has not entered any lobby");
+#endif
             return;
         }
         try
@@ -136,7 +143,9 @@ public class LobbyManager : MonoBehaviour
 
     public async Task<List<Lobby>> QueryLobbies(QueryLobbiesOptions options = null)
     {
+#if UNITY_EDITOR
         Debug.Log("Entered query lobbies method");
+#endif
         try
         {
             QueryResponse response = await Lobbies.Instance.QueryLobbiesAsync(options);
@@ -262,7 +271,6 @@ public class LobbyManager : MonoBehaviour
         {
             try
             {
-                Debug.Log("Game started");
                 string relayCode = await TestRelay.Instance.CreateRelay();
                 Lobby lobby = await Lobbies.Instance.UpdateLobbyAsync(_joinedLobby.Id, new UpdateLobbyOptions
                 {

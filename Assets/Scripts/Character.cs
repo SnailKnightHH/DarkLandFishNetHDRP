@@ -24,7 +24,9 @@ public abstract class Character : NetworkBehaviour
 
     public virtual void ReceiveDamage(int damage)
     {
+#if UNITY_EDITOR
         Debug.Log("In receive damage");
+#endif
         DealDamageToHealthServerRpc(damage);
         if (healthNetworkVariable <= 0)
         {
@@ -34,7 +36,9 @@ public abstract class Character : NetworkBehaviour
 
     public virtual async void ReceiveDamage(GameObject DamageDealer, int damage)
     {
+#if UNITY_EDITOR
         Debug.Log("In receive damage");
+#endif
         DealDamageToHealthServerRpc(damage);
         if (healthNetworkVariable <= 0)
         {
@@ -47,8 +51,9 @@ public abstract class Character : NetworkBehaviour
     {
         healthNetworkVariable -= damage;
         curHealth -= damage;
-
+#if UNITY_EDITOR
         Debug.Log(gameObject.name + " received damage: " + damage + ", health left: " + healthNetworkVariable);
+#endif
     }
 
     protected abstract int Damage

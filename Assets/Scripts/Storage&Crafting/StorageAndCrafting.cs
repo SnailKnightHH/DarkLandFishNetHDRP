@@ -187,7 +187,9 @@ public class StorageAndCrafting : Interactable, ITriggerCollider
             if (quantityLeft < 0)
             {
                 // Todo: UI prompt
+#if UNITY_EDITOR
                 Debug.Log("Insufficient " + requiredItem.ItemName + ", cannot craft.");
+#endif
                 return;
             }
         }
@@ -202,9 +204,10 @@ public class StorageAndCrafting : Interactable, ITriggerCollider
             UpdateCostItemQuantityServerRpc(itemCache.ItemName);
             UpdateCraftedItemQuantityServerRpc(itemCache.ItemName);
         }
-        
+#if UNITY_EDITOR
         Debug.Log(itemCache.ItemName + " crafting complete.");
         Debug.Log("craftItemExecutedNumberOfTimes: " + craftItemExecutedNumberOfTimes);
+#endif
     }
 
     private void UpdateCosts(string ItemName, int quantityRequired, int newQuantity)

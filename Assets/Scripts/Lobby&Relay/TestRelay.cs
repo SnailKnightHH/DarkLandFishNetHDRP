@@ -36,8 +36,9 @@ public class TestRelay : MonoBehaviour
 
             string joinCode = await RelayService.Instance.GetJoinCodeAsync(allocation.AllocationId);
 
+#if UNITY_EDITOR
             Debug.Log(joinCode);
-
+#endif
             RelayServerData relayServerData = new RelayServerData(allocation, "dtls");
             utp.SetRelayServerData(relayServerData);
 
@@ -54,8 +55,9 @@ public class TestRelay : MonoBehaviour
         try
         {
             var utp = (FishyUnityTransport)_networkManager.TransportManager.Transport;
-
+#if UNITY_EDITOR
             Debug.Log("Joining Relay with " + joinCode);
+#endif
             JoinAllocation joinAllocation = await RelayService.Instance.JoinAllocationAsync(joinCode);
 
             RelayServerData relayServerData = new RelayServerData(joinAllocation, "dtls");

@@ -11,7 +11,9 @@ public class Fist : MonoBehaviour, Iweapon
     {
         if (attackableObject != null)
         {
+#if UNITY_EDITOR
             Debug.Log("Fist attack hit: " + attackableObject.name);
+#endif
             if (attackableObject.GetComponentInParent<Enemy>() != null)
             {
                 attackableObject.GetComponentInParent<Enemy>().ReceiveDamage(gameObject, fistDamage);
@@ -47,7 +49,9 @@ public class Fist : MonoBehaviour, Iweapon
 
     private void OnTriggerStay(Collider other)
     {
+#if UNITY_EDITOR
         Debug.Log("attackable object " + other.gameObject.name + " in range.");
+#endif
         attackableObject = other.gameObject;
     }
 
@@ -55,7 +59,9 @@ public class Fist : MonoBehaviour, Iweapon
     {
         if (other.gameObject == attackableObject)
         {
+#if UNITY_EDITOR
             Debug.Log("attackable object " + other.gameObject.name + " leaves range.");
+#endif
             attackableObject = null;
         }
     }

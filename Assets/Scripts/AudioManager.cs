@@ -115,7 +115,9 @@ public class AudioManager : NetworkBehaviour
         if (IsServer || IsHost)
         {
             keepPlayingSoundDict[clientId][soundName] = isPlaying;
+#if UNITY_EDITOR
             Debug.Log(networkObject.LocalConnection.ClientId + "executed continuous sound " + soundName + " , bool: " + isPlaying);
+#endif
             KeepPlayingSound(networkObject.GetComponentInChildren<AudioSource>(), soundName, () => keepPlayingSoundDict[clientId][soundName]);
             UpdatePlayerIsPlayingSoundStatusClientRpc(isPlaying, soundName, networkObject, clientId);
         }
@@ -158,7 +160,9 @@ public class AudioManager : NetworkBehaviour
                     return false;
                 }
             }
+#if UNITY_EDITOR
             Debug.LogError("Sound Enum not found. This should not happen");
+#endif
             return false;
         } else if (soundName == SoundName.Run)
         {
@@ -175,7 +179,9 @@ public class AudioManager : NetworkBehaviour
                     return false;
                 }
             }
+#if UNITY_EDITOR
             Debug.LogError("Sound Enum not found. This should not happen");
+#endif
             return false;
         } else
         {
@@ -186,7 +192,9 @@ public class AudioManager : NetworkBehaviour
     [ServerRpc(RequireOwnership = false, RunLocally = true)]
     public void PlayDiscreteSoundServerRpc(SoundName soundName, NetworkObject networkObject)
     {
+#if UNITY_EDITOR
         Debug.Log(networkObject.LocalConnection.ClientId + "executed discrete sound " + soundName);
+#endif
         networkObject.GetComponentInChildren<AudioSource>().PlayOneShot(GetRandomAudioClip(soundName));
         PlayDiscreteSoundClientRpc(soundName, networkObject);
     }
@@ -194,7 +202,9 @@ public class AudioManager : NetworkBehaviour
     [ObserversRpc(ExcludeServer = true, ExcludeOwner = true, BufferLast = true)]
     public void PlayDiscreteSoundClientRpc(SoundName soundName, NetworkObject networkObject) // Todo: I think initiating client still runs this, so sound played twice
     {
+#if UNITY_EDITOR
         Debug.Log(networkObject.LocalConnection.ClientId + "executed discrete sound " + soundName);
+#endif
         networkObject.GetComponentInChildren<AudioSource>().PlayOneShot(GetRandomAudioClip(soundName));
     }
 
@@ -202,7 +212,9 @@ public class AudioManager : NetworkBehaviour
     public void UpdatePlayerIsPlayingSoundStatusServerRpc(bool isPlaying, SoundName soundName, NetworkObject networkObject, int clientId)
     {
         keepPlayingSoundDict[clientId][soundName] = isPlaying;
+#if UNITY_EDITOR
         Debug.Log(networkObject.LocalConnection.ClientId + "executed continuous sound " + soundName + " , bool: " + isPlaying);
+#endif
         KeepPlayingSound(networkObject.GetComponentInChildren<AudioSource>(), soundName, () => keepPlayingSoundDict[clientId][soundName]);
         UpdatePlayerIsPlayingSoundStatusClientRpc(isPlaying, soundName, networkObject, clientId);
     }
@@ -211,7 +223,9 @@ public class AudioManager : NetworkBehaviour
     public void UpdatePlayerIsPlayingSoundStatusClientRpc(bool isPlaying, SoundName soundName, NetworkObject networkObject, int clientId)
     {
         keepPlayingSoundDict[clientId][soundName] = isPlaying;
+#if UNITY_EDITOR
         Debug.Log(networkObject.LocalConnection.ClientId + "executed continuous sound " + soundName + " , bool: " + isPlaying);
+#endif
         KeepPlayingSound(networkObject.GetComponentInChildren<AudioSource>(), soundName, () => keepPlayingSoundDict[clientId][soundName]);
     }
 

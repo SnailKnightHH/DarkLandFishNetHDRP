@@ -28,7 +28,6 @@ public class Zombie : Enemy, ITriggerCollider
     protected override void ActionWhenRayCastHitPlayer(Player player)
     {
         Debug.DrawRay(eyeTransform.position, player.eyeTransform.position - eyeTransform.position, Color.yellow);
-        Debug.Log("Did Hit");
         pathFindingDestination = player.gameObject.transform;            
     }
 

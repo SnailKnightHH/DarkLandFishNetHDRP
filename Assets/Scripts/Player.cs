@@ -156,7 +156,9 @@ public class Player : Character, ITrackable
 
     public override void OnStartNetwork()
     {
+#if UNITY_EDITOR
         Debug.Log("isOwner = " + base.Owner.IsLocalClient);
+#endif
         //If this is not the owner, turn off player inputs
         if (!base.Owner.IsLocalClient) gameObject.GetComponent<PlayerInput>().enabled = false;
         if (base.Owner.IsLocalClient)
@@ -166,15 +168,12 @@ public class Player : Character, ITrackable
         }
         else
         {
-            Debug.Log("Looking for spawnPoint... ");
             GameObject spawnPoint = GameObject.FindGameObjectWithTag("SpawnPoint");
-            Debug.Log(spawnPoint);
             if (spawnPoint != null)
             {
                 _controller = GetComponent<CharacterController>();
                 _controller.enabled = false;
                 transform.position = spawnPoint.transform.position;
-                Debug.Log("Setting transform to " + spawnPoint.transform.position);
                 _controller.enabled = true;
             }
         }
@@ -314,8 +313,9 @@ public class Player : Character, ITrackable
     {
         // set target speed based on move speed, sprint speed and if sprint is pressed
         float targetSpeed = _input.sprint ? GetFinalMovementSpeed() + SprintSpeedBonus : GetFinalMovementSpeed();
+#if UNITY_EDITOR
         Debug.Log("targetSpeed: " + targetSpeed);
-
+#endif
         // a simplistic acceleration and deceleration designed to be easy to remove, replace, or iterate upon
 
         // note: Vector2's == operator uses approximation so is not floating point error prone, and is cheaper than magnitude
@@ -565,7 +565,6 @@ public class Player : Character, ITrackable
     public void pickup(GameObject objectTobeHeld, int[] availableIdices = null, int NumOfItemOverride = -1)
     {
         // attach object to mount point and keep reference
-        Debug.Log("picking up item");
         if (objectTobeHeld.GetComponent<PickupableObject>().isPickedUp) { return; }
         if (availableIdices == null)
         {
@@ -634,7 +633,6 @@ public class Player : Character, ITrackable
     public void dropoff(bool destroyObject = false)
     {
         // unattach object
-        Debug.Log("dropping off item");
         if (isInventorySlotEmpty(_currentlyHeldIdx)) { return; }
         
         if (inventoryList[_currentlyHeldIdx].Item1.GetComponent<Iweapon>() != null)
@@ -922,7 +920,9 @@ public class Player : Character, ITrackable
         
         if (RotaryHeart.Lib.PhysicsExtension.Physics.SphereCast(cameraTransform.position, sphereColliderRadius, cameraTransform.forward, out RaycastHit hitInfo, playerInteractDistance, Physics.AllLayers, QueryTriggerInteraction.Ignore, RotaryHeart.Lib.PhysicsExtension.PreviewCondition.Both))
         { //Physics.Raycast(cameraTransform.position, cameraTransform.forward, out RaycastHit hitInfo, playerInteractDistance, Physics.AllLayers, QueryTriggerInteraction.Ignore)
+#if UNITY_EDITOR
             Debug.Log("Hitting: " + hitInfo.transform.name);
+#endif
             if (hitInfo.transform.GetComponent<Carryable>() != null)
             {
                 objectToCarry = hitInfo.transform.gameObject;
@@ -946,7 +946,9 @@ public class Player : Character, ITrackable
                 else
                 {
                     Debug.Assert(objectToCarry.GetComponent<PickupableObject>() != null, "Now we assume carryable <=> PickupableObject, so cannot pickup object if it is not PickupableObject");
+#if UNITY_EDITOR
                     Debug.Log($"Is picked up: {objectToCarry.GetComponent<PickupableObject>().isPickedUp}");
+#endif
                     if (!objectToCarry.GetComponent<PickupableObject>().isPickedUp)
                     {
                         PickupPrompt.transform.GetChild(1).GetComponent<TMP_Text>().text = objectToCarry.GetComponent<PickupableObject>().NumOfItem.ToString();
@@ -983,18 +985,9 @@ public class Player : Character, ITrackable
             InventoryFullPrompt.enabled = false;
         }
     }
-
-    //// removes the item held by the player
-    //public void takeItem()
-    //{
-    //    Destroy(objectHeld);
-    //    objectHeld = null;
-    //    isCarrying = false;
-    //}
     
     public void EnterEnvironmentalHazard(EnvironmentalHazardType type)
     {
-        Debug.Log("EnterEnvironmentalHazard, type: " + type);
         if (type == EnvironmentalHazardType.Swamp)
         {
             effectDecorator = new SwampDecorator(effectDecorator);
@@ -1003,7 +996,6 @@ public class Player : Character, ITrackable
 
     public void LeaveEnvironmentalHazard(EnvironmentalHazardType type)
     {
-        Debug.Log("LeaveEnvironmentalHazard, type: " + type);
         // example to consider: CompressionDecorator(EncryptionDecorator(source))
         // If the first decorator in the chain is the type we are looking for 
         if ((effectDecorator as AbstractEffectDecorator).getHazardType() == type)
@@ -1047,7 +1039,9 @@ public class Player : Character, ITrackable
 
     protected override void Die()
     {
+#if UNITY_EDITOR
         Debug.Log("PlayerId: " + LocalConnection.ClientId + " is killed");
+#endif
         GetComponent<NetworkObject>().Despawn();
     }
 }
