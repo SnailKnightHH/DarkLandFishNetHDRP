@@ -27,14 +27,14 @@ public abstract class Enemy : Character, ITriggerCollider, ITrackable
 
     private bool isAttacking = false;
 
-    protected override void Awake()
+    protected virtual void Awake()
     {
-        base.Awake();
         IsAirBorne = false;
     }
 
-    protected virtual void Start()
+    protected override void Start()
     {
+        base.Start();
         agent = GetComponent<NavMeshAgent>();
         rb = GetComponent<Rigidbody>();
         collider = GetComponentInChildren<Collider>();

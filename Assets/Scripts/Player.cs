@@ -197,14 +197,14 @@ public class Player : Character, ITrackable
         return effectDecorator.MovementSpeedEffect();
     }
 
-    protected override void Awake()
+    private void Awake()
     {
-        base.Awake();
         Grabbed = false;
     }
 
-    private void Start()
+    protected override void Start()
     {
+        base.Start();
         _controller = GetComponent<CharacterController>();
         _input = GetComponent<StarterAssetsInputs>();
         _input.BuildButtonReleased += BuildButtonReleasedAction;

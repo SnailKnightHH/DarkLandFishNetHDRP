@@ -11,20 +11,21 @@ public abstract class Character : NetworkBehaviour
     [SerializeField] protected int initialHealth;
     protected int curHealth;
 
-    [SyncVar(Channel = FishNet.Transporting.Channel.Reliable, ReadPermissions =ReadPermission.Observers, WritePermissions = WritePermission.ServerOnly)]
+    [SyncVar(Channel = FishNet.Transporting.Channel.Reliable, ReadPermissions = ReadPermission.Observers, WritePermissions = WritePermission.ServerOnly)]
     [HideInInspector] private int healthNetworkVariable;    
     protected Rigidbody rb;
     protected Collider collider;
 
-    protected virtual void Awake()
+    protected virtual void Start()
     {
+        healthNetworkVariable = initialHealth;
         curHealth = initialHealth;
     }
 
     public virtual void ReceiveDamage(int damage)
     {
         Debug.Log("In receive damage");
-        UpdateHealthServerRpc(damage);
+        DealDamageToHealthServerRpc(damage);
         if (healthNetworkVariable <= 0)
         {
             Die();
@@ -34,7 +35,7 @@ public abstract class Character : NetworkBehaviour
     public virtual async void ReceiveDamage(GameObject DamageDealer, int damage)
     {
         Debug.Log("In receive damage");
-        UpdateHealthServerRpc(damage);
+        DealDamageToHealthServerRpc(damage);
         if (healthNetworkVariable <= 0)
         {
             Die();
@@ -42,7 +43,7 @@ public abstract class Character : NetworkBehaviour
     }
 
     [ServerRpc(RequireOwnership = false)]
-    private void UpdateHealthServerRpc(int damage)
+    private void DealDamageToHealthServerRpc(int damage)
     {
         healthNetworkVariable -= damage;
         curHealth -= damage;
