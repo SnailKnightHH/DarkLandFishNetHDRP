@@ -63,6 +63,8 @@ MonoBehaviour:
   pistalBullet: {fileID: 405101489159552822, guid: eae05f52a2c4e004eb9d810009affbb2,
     type: 3}
   pistolDamage: 10
+  MuzzleFlashEffect: {fileID: 1828176872806910, guid: 64891a0eb28db934898420d80ca07cb3,
+    type: 3}
 --- !u!54 &3177687241107868933
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -296,7 +298,7 @@ GameObject:
   m_Layer: 0
   m_Name: GunTipTransform
   m_TagString: Untagged
-  m_Icon: {fileID: -5397416234189338067, guid: 0000000000000000d000000000000000, type: 0}
+  m_Icon: {fileID: 4162164826716764455, guid: 0000000000000000d000000000000000, type: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
@@ -309,7 +311,7 @@ Transform:
   m_GameObject: {fileID: 7854729131358620783}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 1.093, z: -0}
+  m_LocalPosition: {x: 0.012, y: 3.35, z: 1.211}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

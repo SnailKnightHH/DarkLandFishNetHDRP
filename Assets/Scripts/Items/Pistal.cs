@@ -1,3 +1,4 @@
+using FishNet.Object;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -36,6 +37,7 @@ public class Pistal : PickupableObject, Iweapon
     public void Attack()
     {
         AudioManager.Instance.PlayAudioDiscrete(NetworkObject, AudioManager.SoundName.pistol);
+        EffectManager.Instance.PlayEffect(EffectName.MuzzleFlash, 2f, gunTipPoint.position, gunTipPoint.rotation, followCarryMountTransform.GetComponentInParent<NetworkObject>().NetworkManager.IsServer);
         //Debug.Log("Pistal shoots");
         if (RotaryHeart.Lib.PhysicsExtension.Physics.Raycast(ShootTransform.position, ShootTransform.forward, out RaycastHit hitInfo, shootDistance, Physics.AllLayers, QueryTriggerInteraction.Ignore, RotaryHeart.Lib.PhysicsExtension.PreviewCondition.Both))
         {

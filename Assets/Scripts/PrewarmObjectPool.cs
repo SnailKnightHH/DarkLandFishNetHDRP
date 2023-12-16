@@ -19,7 +19,10 @@ public class PrewarmObjectPool : NetworkBehaviour
         {
             InstanceFinder.NetworkManager.CacheObjects(kvp.Value.GetComponent<NetworkObject>(), 10, IsServer); 
         }
-        
+        foreach (EffectEnumToEffectPrefabMapping effectMapping in EffectManager.Instance.EffectMappings)
+        {
+            InstanceFinder.NetworkManager.CacheObjects(effectMapping.effect.GetComponent<NetworkObject>(), 30, IsServer);
+        }
     }
 
 
