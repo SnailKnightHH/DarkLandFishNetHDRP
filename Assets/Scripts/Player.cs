@@ -11,9 +11,7 @@ using UnityEngine.InputSystem;
 using UnityEngine.UI;
 using static EnvironmentalHazardsManager;
 using Unity.VisualScripting;
-using UnityEngine.Windows;
 using static AudioManager;
-using UnityEditor.PackageManager;
 
 public class Player : Character, ITrackable
 {
@@ -917,9 +915,12 @@ public class Player : Character, ITrackable
     {
         objectToCarry = null;
         objectToInteract = null;
-        
-        if (RotaryHeart.Lib.PhysicsExtension.Physics.SphereCast(cameraTransform.position, sphereColliderRadius, cameraTransform.forward, out RaycastHit hitInfo, playerInteractDistance, Physics.AllLayers, QueryTriggerInteraction.Ignore, RotaryHeart.Lib.PhysicsExtension.PreviewCondition.Both))
-        { //Physics.Raycast(cameraTransform.position, cameraTransform.forward, out RaycastHit hitInfo, playerInteractDistance, Physics.AllLayers, QueryTriggerInteraction.Ignore)
+
+#if UNITY_EDITOR
+        if (RotaryHeart.Lib.PhysicsExtension.Physics.SphereCast(cameraTransform.position, sphereColliderRadius, cameraTransform.forward, out RaycastHit hitInfo, playerInteractDistance, Physics.AllLayers, QueryTriggerInteraction.Ignore, RotaryHeart.Lib.PhysicsExtension.PreviewCondition.Both)) { 
+#else
+        if (Physics.SphereCast(cameraTransform.position, sphereColliderRadius, cameraTransform.forward, out RaycastHit hitInfo, playerInteractDistance, Physics.AllLayers, QueryTriggerInteraction.Ignore)) { 
+#endif
 #if UNITY_EDITOR
             Debug.Log("Hitting: " + hitInfo.transform.name);
 #endif

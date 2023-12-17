@@ -218,8 +218,11 @@ public class Defense : PickupableObject, ITriggerCollider
         print("deployRotation:" + deployRotation);
         if (!isDeployed)
         {
-            if (RotaryHeart.Lib.PhysicsExtension.Physics.Raycast(transform.position, -transform.up, out RaycastHit hitInfo, Mathf.Infinity, walkableLayerMask, QueryTriggerInteraction.Ignore, RotaryHeart.Lib.PhysicsExtension.PreviewCondition.Both))
-            {                
+#if UNITY_EDITOR
+            if (RotaryHeart.Lib.PhysicsExtension.Physics.Raycast(transform.position, -transform.up, out RaycastHit hitInfo, Mathf.Infinity, walkableLayerMask, QueryTriggerInteraction.Ignore, RotaryHeart.Lib.PhysicsExtension.PreviewCondition.Both)) { 
+#else
+            if (Physics.Raycast(transform.position, -transform.up, out RaycastHit hitInfo, Mathf.Infinity, walkableLayerMask, QueryTriggerInteraction.Ignore)) {
+#endif
                 HitGroundLocation = LastHitGroundLocation = hitInfo.point;
                 Quaternion rotationBasedOnSurface = Quaternion.Lerp(transform.rotation, Quaternion.FromToRotation(Vector3.up, hitInfo.normal), rotateSpeed * Time.deltaTime);
                 transform.rotation = Quaternion.Euler(rotationBasedOnSurface.eulerAngles.x, transform.eulerAngles.y, rotationBasedOnSurface.eulerAngles.z);

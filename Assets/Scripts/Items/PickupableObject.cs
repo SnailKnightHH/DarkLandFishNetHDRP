@@ -203,7 +203,9 @@ public class PickupableObject : Carryable, IThrowable
 
     public void Throw(Transform throwTransform)
     {
+#if UNITY_EDITOR
         Debug.Log("Throw " + _item.ItemName + " reached");
+#endif
         rb.AddRelativeForce(new Vector3(0, 0.5f, 1) * throwForce, ForceMode.VelocityChange); // Don't need to define item weight separately since ForceMode.Impulse takes rb.mass into consideration        
     }
 }

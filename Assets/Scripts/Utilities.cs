@@ -20,7 +20,11 @@ public static class Utilities
 
     public static void DetermineRotationBySurfaceNormal(Transform transform, LayerMask walkableLayerMask)
     {
+#if UNITY_EDITOR
         if (RotaryHeart.Lib.PhysicsExtension.Physics.Raycast(transform.position, -Vector3.up, out RaycastHit hitInfo, Mathf.Infinity, walkableLayerMask, QueryTriggerInteraction.Ignore, RotaryHeart.Lib.PhysicsExtension.PreviewCondition.Both))
+#else
+        if (Physics.Raycast(transform.position, -Vector3.up, out RaycastHit hitInfo, Mathf.Infinity, walkableLayerMask, QueryTriggerInteraction.Ignore))
+#endif
         {
             Quaternion rotationBasedOnSurface = Quaternion.FromToRotation(Vector3.up, hitInfo.normal);
             transform.SetPositionAndRotation(hitInfo.point, Quaternion.Euler(rotationBasedOnSurface.eulerAngles.x, transform.eulerAngles.y, rotationBasedOnSurface.eulerAngles.z));
@@ -30,7 +34,11 @@ public static class Utilities
     // Make sure to place objects/enemies in a place where there is nav mesh 
     public static Vector3 RaycastHitPointPosition(Transform transform, LayerMask walkableLayerMask)
     {
+#if UNITY_EDITOR
         if (RotaryHeart.Lib.PhysicsExtension.Physics.Raycast(transform.position, -Vector3.up, out RaycastHit hitInfo, Mathf.Infinity, walkableLayerMask, QueryTriggerInteraction.Ignore, RotaryHeart.Lib.PhysicsExtension.PreviewCondition.Both))
+#else
+        if (Physics.Raycast(transform.position, -Vector3.up, out RaycastHit hitInfo, Mathf.Infinity, walkableLayerMask, QueryTriggerInteraction.Ignore))
+#endif
         {
             return hitInfo.point;
         } else

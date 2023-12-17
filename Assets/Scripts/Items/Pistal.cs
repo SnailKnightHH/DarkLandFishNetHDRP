@@ -38,8 +38,12 @@ public class Pistal : PickupableObject, Iweapon
     {
         AudioManager.Instance.PlayAudioDiscrete(NetworkObject, AudioManager.SoundName.pistol);
         EffectManager.Instance.PlayEffect(EffectName.MuzzleFlash, 2f, gunTipPoint.position, gunTipPoint.rotation, followCarryMountTransform.GetComponentInParent<NetworkObject>().NetworkManager.IsServer);
-        //Debug.Log("Pistal shoots");
+
+#if UNITY_EDITOR
         if (RotaryHeart.Lib.PhysicsExtension.Physics.Raycast(ShootTransform.position, ShootTransform.forward, out RaycastHit hitInfo, shootDistance, Physics.AllLayers, QueryTriggerInteraction.Ignore, RotaryHeart.Lib.PhysicsExtension.PreviewCondition.Both))
+#else
+        if (Physics.Raycast(ShootTransform.position, ShootTransform.forward, out RaycastHit hitInfo, shootDistance, Physics.AllLayers, QueryTriggerInteraction.Ignore))
+#endif
         {
             //Debug.Log("pistol hits: " + hitInfo.transform.name);
             if (hitInfo.transform.GetComponentInParent<Enemy>() != null)
