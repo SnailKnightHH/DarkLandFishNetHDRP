@@ -107,7 +107,6 @@ public class AudioManager : NetworkBehaviour
 
     public void PlayAudioContinuousNetwork(NetworkObject networkObject, SoundName soundName, bool isPlaying, int clientId)
     {
-        keepPlayingSoundDict[clientId][soundName] = isPlaying;
         if (IsServer || IsHost)
         {
             keepPlayingSoundDict[clientId][soundName] = isPlaying;
@@ -123,6 +122,35 @@ public class AudioManager : NetworkBehaviour
         }
     }
 
+    [ServerRpc(RequireOwnership = false, RunLocally = true)]
+    public void UpdatePlayerIsPlayingSoundStatusServerRpc(bool isPlaying, SoundName soundName, NetworkObject networkObject, int clientId)
+    {
+        keepPlayingSoundDict[clientId][soundName] = isPlaying;
+#if UNITY_EDITOR
+        Debug.Log(networkObject.LocalConnection.ClientId + "executed continuous sound " + soundName + " , bool: " + isPlaying);
+#endif
+        KeepPlayingSound(networkObject.GetComponentInChildren<AudioSource>(), soundName, () => keepPlayingSoundDict[clientId][soundName]);
+        UpdatePlayerIsPlayingSoundStatusClientRpc(isPlaying, soundName, networkObject, clientId);
+    }
+
+    [ObserversRpc(ExcludeServer = true)]
+    public void UpdatePlayerIsPlayingSoundStatusClientRpc(bool isPlaying, SoundName soundName, NetworkObject networkObject, int clientId)
+    {
+        keepPlayingSoundDict[clientId][soundName] = isPlaying;
+#if UNITY_EDITOR
+        Debug.Log(networkObject.LocalConnection.ClientId + "executed continuous sound " + soundName + " , bool: " + isPlaying);
+#endif
+        StartCoroutine(KeepPlayingSound(networkObject.GetComponentInChildren<AudioSource>(), soundName, () => keepPlayingSoundDict[clientId][soundName]));
+    }
+
+    private IEnumerator KeepPlayingSound(AudioSource audioSource, SoundName soundName, Func<bool> ifKeepPlaying)
+    {
+        while (ifKeepPlaying())
+        {
+            audioSource.PlayOneShot(GetRandomAudioClip(soundName));
+            yield return null;
+        }
+    }
 
 
     public void PlayAudioDiscrete(NetworkObject networkObject, SoundName soundName)
@@ -202,37 +230,6 @@ public class AudioManager : NetworkBehaviour
         Debug.Log(networkObject.LocalConnection.ClientId + "executed discrete sound " + soundName);
 #endif
         networkObject.GetComponentInChildren<AudioSource>().PlayOneShot(GetRandomAudioClip(soundName));
-    }
-
-    [ServerRpc(RequireOwnership = false, RunLocally = true)]
-    public void UpdatePlayerIsPlayingSoundStatusServerRpc(bool isPlaying, SoundName soundName, NetworkObject networkObject, int clientId)
-    {
-        keepPlayingSoundDict[clientId][soundName] = isPlaying;
-#if UNITY_EDITOR
-        Debug.Log(networkObject.LocalConnection.ClientId + "executed continuous sound " + soundName + " , bool: " + isPlaying);
-#endif
-        KeepPlayingSound(networkObject.GetComponentInChildren<AudioSource>(), soundName, () => keepPlayingSoundDict[clientId][soundName]);
-        UpdatePlayerIsPlayingSoundStatusClientRpc(isPlaying, soundName, networkObject, clientId);
-    }
-
-    [ObserversRpc(ExcludeServer = true)]
-    public void UpdatePlayerIsPlayingSoundStatusClientRpc(bool isPlaying, SoundName soundName, NetworkObject networkObject, int clientId)
-    {
-        keepPlayingSoundDict[clientId][soundName] = isPlaying;
-#if UNITY_EDITOR
-        Debug.Log(networkObject.LocalConnection.ClientId + "executed continuous sound " + soundName + " , bool: " + isPlaying);
-#endif
-        KeepPlayingSound(networkObject.GetComponentInChildren<AudioSource>(), soundName, () => keepPlayingSoundDict[clientId][soundName]);
-    }
-
-    private IEnumerator KeepPlayingSound(AudioSource audioSource, SoundName soundName, Func<bool> ifKeepPlaying)
-    {
-
-        while (ifKeepPlaying())
-        {
-            audioSource.PlayOneShot(GetRandomAudioClip(soundName));
-            yield return null;
-        }
     }
 
     void Update()
