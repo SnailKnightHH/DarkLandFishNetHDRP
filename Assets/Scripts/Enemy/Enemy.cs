@@ -23,7 +23,7 @@ public abstract class Enemy : Character, ITriggerCollider, ITrackable
         get; set;
     }
 
-    public Transform TrackOrigin => transform;
+    public Transform TrackOrigin => eyeTransform;
 
     private bool isAttacking = false;
 
@@ -87,7 +87,7 @@ public abstract class Enemy : Character, ITriggerCollider, ITrackable
 #if UNITY_EDITOR
         Debug.Log("Enemy killed");
 #endif
-        base.Despawn();
+        base.Despawn(FishNet.Object.DespawnType.Pool);
     }
 
     public virtual void onEnterDetectionZone(Collider other, GameObject initiatingGameObject)

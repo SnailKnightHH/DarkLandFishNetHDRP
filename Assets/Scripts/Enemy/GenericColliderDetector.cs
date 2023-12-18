@@ -80,9 +80,13 @@ public class GenericColliderDetector<T> : ITriggerCollider
         foreach (GameObject GO in GOList)
         {
             T target = GO.GetComponent<T>();
+#if UNITY_EDITOR
+            if (RotaryHeart.Lib.PhysicsExtension.Physics.Raycast(detectorOrigin.position, GO.GetComponent<ITrackable>().TrackOrigin.position - detectorOrigin.position, out RaycastHit hit, Mathf.Infinity, ~LayerMask.NameToLayer(LayerMaskToExclude), QueryTriggerInteraction.Ignore, RotaryHeart.Lib.PhysicsExtension.PreviewCondition.Both))
+#else
             if (Physics.Raycast(detectorOrigin.position, GO.GetComponent<ITrackable>().TrackOrigin.position - detectorOrigin.position, out RaycastHit hit, Mathf.Infinity, ~LayerMask.NameToLayer(LayerMaskToExclude), QueryTriggerInteraction.Ignore))
-            {
-                if (hit.collider.gameObject.GetComponentInParent<T>() != null
+#endif
+                {
+                    if (hit.collider.gameObject.GetComponentInParent<T>() != null
                     && hit.collider.gameObject.GetComponentInParent<NetworkObject>().ObjectId == GO.GetComponent<NetworkObject>().ObjectId)
                 {
                     lockedTarget = GO;

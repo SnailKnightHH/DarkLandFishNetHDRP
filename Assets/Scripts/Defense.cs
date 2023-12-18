@@ -115,7 +115,7 @@ public class Defense : PickupableObject, ITriggerCollider
 
     public override void Dropoff(int numberOfItems)
     {
-        GetComponentInChildren<Collider>().isTrigger = false;
+        pickupableBaseClasscollider.isTrigger = false;
         UpdatePickUpStatusServerRpc(false);
         SetCarryMountTransform(null);
         SetCameraViewTransform(null);
@@ -193,8 +193,15 @@ public class Defense : PickupableObject, ITriggerCollider
     {
         if (HitGroundLocation != Vector3.zero)
         {
+            Gizmos.color = Color.blue;
             Gizmos.DrawWireSphere(HitGroundLocation, 0.5f);
+            Gizmos.DrawLine(HitGroundLocation, HitGroundLocation + hitInfo.normal * 10f);
         }
+        Gizmos.color = Color.magenta;
+        Gizmos.DrawLine(transform.position, HitGroundLocation + transform.up * 10f);
+        //Gizmos.color = Color.yellow;
+        //Gizmos.DrawLine(transform.position, Vector3.up * 10f);
+
     }
 
     public virtual bool Deploy()
@@ -212,24 +219,26 @@ public class Defense : PickupableObject, ITriggerCollider
         return true;
     }
 
+    private RaycastHit hitInfo; // debugging purpose
 
     protected virtual void Update()
     {
-        print("deployRotation:" + deployRotation);
         if (!isDeployed)
         {
 #if UNITY_EDITOR
-            if (RotaryHeart.Lib.PhysicsExtension.Physics.Raycast(transform.position, -transform.up, out RaycastHit hitInfo, Mathf.Infinity, walkableLayerMask, QueryTriggerInteraction.Ignore, RotaryHeart.Lib.PhysicsExtension.PreviewCondition.Both)) { 
+            if (RotaryHeart.Lib.PhysicsExtension.Physics.Raycast(transform.position, -transform.up, out RaycastHit hitInfo, Mathf.Infinity, walkableLayerMask, QueryTriggerInteraction.Ignore, RotaryHeart.Lib.PhysicsExtension.PreviewCondition.Both)) {
 #else
             if (Physics.Raycast(transform.position, -transform.up, out RaycastHit hitInfo, Mathf.Infinity, walkableLayerMask, QueryTriggerInteraction.Ignore)) {
 #endif
+                this.hitInfo = hitInfo;
                 HitGroundLocation = LastHitGroundLocation = hitInfo.point;
                 Quaternion rotationBasedOnSurface = Quaternion.Lerp(transform.rotation, Quaternion.FromToRotation(Vector3.up, hitInfo.normal), rotateSpeed * Time.deltaTime);
-                transform.rotation = Quaternion.Euler(rotationBasedOnSurface.eulerAngles.x, transform.eulerAngles.y, rotationBasedOnSurface.eulerAngles.z);
+                transform.rotation = rotationBasedOnSurface; // Quaternion.Euler(-rotationBasedOnSurface.eulerAngles.x, transform.eulerAngles.y, -rotationBasedOnSurface.eulerAngles.z);
                 deployRotation = transform.rotation;
             } else
             {
                 HitGroundLocation = LastHitGroundLocation;
+                transform.position = new Vector3(transform.position.x, transform.position.y + 1f, transform.position.z);
             }
         } 
     }

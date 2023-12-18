@@ -12,7 +12,7 @@ public class EPT : Defense
     private float attackInterval = 1f;
     private GameObject lockedEnemy;    
     [SerializeField] private Transform MeshTransform;
-
+    [SerializeField] private Transform[] MuzzleFlashTransforms;
     
 
     private GenericColliderDetector<Enemy> colliderDetector;
@@ -68,6 +68,10 @@ public class EPT : Defense
         if (lockedEnemy != null && curAmmo > 0 && !attacking && linedUp)
         {
             attacking = true;
+            foreach (Transform transform in MuzzleFlashTransforms)
+            {
+                EffectManager.Instance.PlayEffect(EffectName.MuzzleFlash, 2f, transform.position, transform.rotation, NetworkObject.NetworkManager.IsServer);
+            }
             StartCoroutine(EPTAttack());
         }
     }
@@ -91,7 +95,8 @@ public class EPT : Defense
     {
         if (lockedEnemy != null)
         {
-            Vector3 targetPositionFlat = new Vector3(lockedEnemy.transform.position.x, lockedEnemy.transform.position.x, lockedEnemy.transform.position.z);
+            //Vector3 targetPositionFlat = new Vector3(lockedEnemy.transform.position.x, MeshTransform.position.y, lockedEnemy.transform.position.z);
+            Vector3 targetPositionFlat = lockedEnemy.transform.position;
 
             // Calculate the direction from this GameObject to the modified target position
             Vector3 direction = (targetPositionFlat - MeshTransform.position).normalized;
@@ -100,9 +105,9 @@ public class EPT : Defense
             if (direction != Vector3.zero)
             {
                 Quaternion lookRotation = Quaternion.LookRotation(direction);
-                // Apply a 90-degree offset around the Y axis
-                Quaternion offsetRotation = Quaternion.Euler(0, -90, 0);
-                Quaternion finalRotation = lookRotation * offsetRotation;
+                //// Apply a 90-degree offset around the Y axis
+                //Quaternion offsetRotation = Quaternion.Euler(0, -90, 0);
+                Quaternion finalRotation = lookRotation;
 
                 MeshTransform.rotation = Quaternion.RotateTowards(MeshTransform.rotation, finalRotation, Time.deltaTime * 20f);
 

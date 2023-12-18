@@ -7,7 +7,7 @@ public class Zombie : Enemy, ITriggerCollider
 {        
     private Vector3 playerLastSeenLocation;
 
-    protected override int Damage { get => 10; }
+    protected override int Damage { get => 0; }
 
     protected override void Start()
     {

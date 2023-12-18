@@ -175,6 +175,8 @@ public class Player : Character, ITrackable
                 _controller.enabled = true;
             }
         }
+        // Destroy menu camera when player enter game (only one camera should be active, which is on the player. Two camera cut performance in half.)
+        Destroy(GameObject.Find("MenuCamera"));
     }
 
     // Currently used as "isUsingStorage" 

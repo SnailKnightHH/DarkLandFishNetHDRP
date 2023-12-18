@@ -23,7 +23,7 @@ public class Mirage : Enemy
     [SyncVar(Channel = FishNet.Transporting.Channel.Reliable, ReadPermissions = ReadPermission.Observers, WritePermissions = WritePermission.ServerOnly)]
     [HideInInspector] private bool CanBeAttacked;    
 
-    protected override int Damage { get => 20; }
+    protected override int Damage { get => 0; }
 
     Iweapon weapon; // debug purposes    
 
