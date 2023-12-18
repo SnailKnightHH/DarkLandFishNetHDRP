@@ -87,7 +87,9 @@ public abstract class Enemy : Character, ITriggerCollider, ITrackable
 #if UNITY_EDITOR
         Debug.Log("Enemy killed");
 #endif
-        base.Despawn(FishNet.Object.DespawnType.Pool);
+        // Todo: For now use this to force ontriggerexit. Need a better way.
+        transform.position = new Vector3(1000000, 1000000, 1000000);
+        base.Despawn();
     }
 
     public virtual void onEnterDetectionZone(Collider other, GameObject initiatingGameObject)

@@ -1045,6 +1045,8 @@ public class Player : Character, ITrackable
 #if UNITY_EDITOR
         Debug.Log("PlayerId: " + LocalConnection.ClientId + " is killed");
 #endif
+        // Todo: For now use this to force ontriggerexit. Need a better way.
+        transform.position = new Vector3(1000000, 1000000, 1000000);
         GetComponent<NetworkObject>().Despawn();
     }
 }

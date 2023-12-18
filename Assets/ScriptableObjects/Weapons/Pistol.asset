@@ -17,8 +17,8 @@ MonoBehaviour:
   ItemType: 3
   Rarity: 0
   Cost:
-  - Item: {fileID: 11400000, guid: 619438a2050db784b8e2a582baae2007, type: 2}
-    QuantityRequired: 5
-  - Item: {fileID: 11400000, guid: 8e0043e16a61ae944b7a95e1c1e8df7a, type: 2}
-    QuantityRequired: 6
+  - Item: {fileID: 11400000, guid: 9dbde07f662cebe449db7311edba52f1, type: 2}
+    QuantityRequired: 2
+  - Item: {fileID: 11400000, guid: f4de09c54b857c94cabff4724e8341c7, type: 2}
+    QuantityRequired: 2
   Description: A pistol??? Already???
