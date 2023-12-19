@@ -31,7 +31,6 @@ public class AudioManager : NetworkBehaviour
     }
 
     [SerializeField] private List<SoundEnumToClipMapping> SoundNameToAudioClipMapping;
-    //NetworkManager.ClientManager.Connection.ClientId
     private Dictionary<SoundName, AudioClip[]> soundNameToAudioClipDict = new Dictionary<SoundName, AudioClip[]>();
     private Dictionary<int, Dictionary<SoundName, float>> soundTimerDict = new Dictionary<int, Dictionary<SoundName, float>>();
     private Dictionary<int, Dictionary<SoundName, bool>> keepPlayingSoundDict = new Dictionary<int, Dictionary<SoundName, bool>>();
@@ -105,6 +104,13 @@ public class AudioManager : NetworkBehaviour
         }
     }
 
+    /// <summary>
+    /// Only takes care of syncing the sound track through the network. Call PlayAudioContinuousLocal() to play for local player.
+    /// </summary>
+    /// <param name="networkObject">NetworkObject component attached to this GO.</param>
+    /// <param name="soundName">Enum sound name of the clip.</param>
+    /// <param name="isPlaying">True to play, false to stop.</param>
+    /// <param name="clientId">This connection's id</param>
     public void PlayAudioContinuousNetwork(NetworkObject networkObject, SoundName soundName, bool isPlaying, int clientId)
     {
         if (IsServer || IsHost)
@@ -113,7 +119,6 @@ public class AudioManager : NetworkBehaviour
 #if UNITY_EDITOR
             Debug.Log(networkObject.LocalConnection.ClientId + "executed continuous sound " + soundName + " , bool: " + isPlaying);
 #endif
-            KeepPlayingSound(networkObject.GetComponentInChildren<AudioSource>(), soundName, () => keepPlayingSoundDict[clientId][soundName]);
             UpdatePlayerIsPlayingSoundStatusClientRpc(isPlaying, soundName, networkObject, clientId);
         }
         else
@@ -122,20 +127,21 @@ public class AudioManager : NetworkBehaviour
         }
     }
 
-    [ServerRpc(RequireOwnership = false, RunLocally = true)]
-    public void UpdatePlayerIsPlayingSoundStatusServerRpc(bool isPlaying, SoundName soundName, NetworkObject networkObject, int clientId)
+    [ServerRpc(RequireOwnership = false)]
+    private void UpdatePlayerIsPlayingSoundStatusServerRpc(bool isPlaying, SoundName soundName, NetworkObject networkObject, int clientId)
     {
         keepPlayingSoundDict[clientId][soundName] = isPlaying;
 #if UNITY_EDITOR
         Debug.Log(networkObject.LocalConnection.ClientId + "executed continuous sound " + soundName + " , bool: " + isPlaying);
 #endif
-        KeepPlayingSound(networkObject.GetComponentInChildren<AudioSource>(), soundName, () => keepPlayingSoundDict[clientId][soundName]);
+        StartCoroutine(KeepPlayingSound(networkObject.GetComponentInChildren<AudioSource>(), soundName, () => keepPlayingSoundDict[clientId][soundName]));
         UpdatePlayerIsPlayingSoundStatusClientRpc(isPlaying, soundName, networkObject, clientId);
     }
 
     [ObserversRpc(ExcludeServer = true)]
-    public void UpdatePlayerIsPlayingSoundStatusClientRpc(bool isPlaying, SoundName soundName, NetworkObject networkObject, int clientId)
+    private void UpdatePlayerIsPlayingSoundStatusClientRpc(bool isPlaying, SoundName soundName, NetworkObject networkObject, int clientId)
     {
+        if (clientId == NetworkManager.ClientManager.Connection.ClientId) { return; } // exclude the client who initiates the call since the player would have called PlayAudioContinuousLocal()
         keepPlayingSoundDict[clientId][soundName] = isPlaying;
 #if UNITY_EDITOR
         Debug.Log(networkObject.LocalConnection.ClientId + "executed continuous sound " + soundName + " , bool: " + isPlaying);
@@ -214,7 +220,7 @@ public class AudioManager : NetworkBehaviour
     }
 
     [ServerRpc(RequireOwnership = false, RunLocally = true)]
-    public void PlayDiscreteSoundServerRpc(SoundName soundName, NetworkObject networkObject)
+    private void PlayDiscreteSoundServerRpc(SoundName soundName, NetworkObject networkObject)
     {
 #if UNITY_EDITOR
         Debug.Log(networkObject.LocalConnection.ClientId + "executed discrete sound " + soundName);
@@ -224,7 +230,7 @@ public class AudioManager : NetworkBehaviour
     }
 
     [ObserversRpc(ExcludeServer = true, ExcludeOwner = true, BufferLast = true)]
-    public void PlayDiscreteSoundClientRpc(SoundName soundName, NetworkObject networkObject) // Todo: I think initiating client still runs this, so sound played twice
+    private void PlayDiscreteSoundClientRpc(SoundName soundName, NetworkObject networkObject) // Todo: I think initiating client still runs this, so sound played twice
     {
 #if UNITY_EDITOR
         Debug.Log(networkObject.LocalConnection.ClientId + "executed discrete sound " + soundName);
