@@ -21,6 +21,4 @@ MonoBehaviour:
     QuantityRequired: 1
   - Item: {fileID: 11400000, guid: f4de09c54b857c94cabff4724e8341c7, type: 2}
     QuantityRequired: 1
-  - Item: {fileID: 11400000, guid: 9dbde07f662cebe449db7311edba52f1, type: 2}
-    QuantityRequired: 1
   Description: Energy Pulse Turret
