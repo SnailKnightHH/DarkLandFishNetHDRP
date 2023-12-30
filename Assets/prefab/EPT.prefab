@@ -63,7 +63,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 8256
   heightOffset: 0.5
-  DeployedMaterial: {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
+  DeployedMaterial: {fileID: 2100000, guid: 123f4639340d91b408fc303cd5f41d5b, type: 2}
   canDeployMaterial: {fileID: 2100000, guid: fcb6706733ec9aa4ca95d4275e910c43, type: 2}
   cannotDeployMaterial: {fileID: 2100000, guid: 4b390c32e15d6a749bd9bb9ecd701dcd,
     type: 2}
@@ -101,7 +101,7 @@ MonoBehaviour:
   _initializeOrder: 0
   _defaultDespawnType: 1
   NetworkObserver: {fileID: 0}
-  <PrefabId>k__BackingField: 5
+  <PrefabId>k__BackingField: 20
   <SpawnableCollectionId>k__BackingField: 0
   _scenePathHash: 0
   <SceneId>k__BackingField: 0
