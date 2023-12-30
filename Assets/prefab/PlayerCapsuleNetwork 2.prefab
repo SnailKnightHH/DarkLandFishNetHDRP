@@ -1815,7 +1815,7 @@ Camera:
   m_Enabled: 1
   serializedVersion: 2
   m_ClearFlags: 2
-  m_BackGroundColor: {r: 0.254717, g: 0.254717, b: 0.254717, a: 1}
+  m_BackGroundColor: {r: 0.14146496, g: 0.14269976, b: 0.16037738, a: 1}
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
   m_FOVAxisMode: 0
@@ -2579,6 +2579,7 @@ MonoBehaviour:
   CinemachineCameraTarget: {fileID: 1547056851132548473}
   TopClamp: 90
   BottomClamp: -90
+  animator: {fileID: 0}
   freezePlayerAndCameraMovement: 0
 --- !u!114 &4702497495277674664
 MonoBehaviour:
